@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { TopUtilityBar, MainHeader, Footer } from "@/components/layout";
+import { useAuth } from "@/context";
 
 type TabType = "dashboard" | "orders" | "wishlist" | "rewards" | "addresses" | "payment";
 
 // Dashboard Content Component
-const DashboardContent: React.FC = () => (
+const DashboardContent: React.FC<{ userName: string }> = ({ userName }) => (
   <>
     {/* Header Row */}
     <div
@@ -37,7 +39,7 @@ const DashboardContent: React.FC = () => (
           textTransform: "uppercase",
         }}
       >
-        WELCOME BACK, AKSHAT
+        WELCOME BACK, {userName.toUpperCase()}
       </p>
     </div>
 
@@ -1073,7 +1075,21 @@ const PlaceholderContent: React.FC<{ title: string }> = ({ title }) => (
 );
 
 export default function AccountPage() {
+  const router = useRouter();
+  const { user, isLoading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   const menuItems: { id: TabType; label: string }[] = [
     { id: "dashboard", label: "DASHBOARD" },
@@ -1083,6 +1099,41 @@ export default function AccountPage() {
     { id: "addresses", label: "SAVED ADDRESSES" },
     { id: "payment", label: "PAYMENT METHODS" },
   ];
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+        <TopUtilityBar />
+        <MainHeader />
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "Lexend, sans-serif",
+              fontWeight: 400,
+              fontSize: "16px",
+              color: "#666666",
+            }}
+          >
+            Loading...
+          </p>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
@@ -1123,9 +1174,24 @@ export default function AccountPage() {
                   width: "48px",
                   height: "48px",
                   borderRadius: "50%",
-                  backgroundColor: "#E5E5E5",
+                  backgroundColor: "#4A2B1F",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
-              />
+              >
+                <span
+                  style={{
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 600,
+                    fontSize: "18px",
+                    color: "#FCF6EB",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {user.name.charAt(0)}
+                </span>
+              </div>
               <div>
                 <h3
                   style={{
@@ -1137,7 +1203,7 @@ export default function AccountPage() {
                     marginBottom: "4px",
                   }}
                 >
-                  AKSHAT JAIN
+                  {user.name}
                 </h3>
                 <p
                   style={{
@@ -1175,12 +1241,32 @@ export default function AccountPage() {
                   {item.label}
                 </button>
               ))}
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                style={{
+                  textAlign: "left",
+                  padding: "12px 0",
+                  background: "none",
+                  border: "none",
+                  fontFamily: "Lexend, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "14px",
+                  color: "#C9746C",
+                  cursor: "pointer",
+                  textTransform: "uppercase",
+                  marginTop: "16px",
+                }}
+              >
+                LOGOUT
+              </button>
             </nav>
           </div>
 
           {/* Right Content */}
           <div style={{ flex: 1 }}>
-            {activeTab === "dashboard" && <DashboardContent />}
+            {activeTab === "dashboard" && <DashboardContent userName={user.name} />}
             {activeTab === "orders" && <OrderHistoryContent />}
             {activeTab === "wishlist" && <WishlistContent />}
             {activeTab === "rewards" && <RewardsContent />}

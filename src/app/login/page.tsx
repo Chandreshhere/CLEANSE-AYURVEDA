@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context";
 
@@ -32,6 +32,46 @@ interface ProductCard {
   rotation: number;
   image: string;
 }
+
+// Define zones around the edges (avoiding center form area)
+const zones = [
+  // Top edge - full width
+  { topMin: 2, topMax: 12, leftMin: 2, leftMax: 20 },
+  { topMin: 2, topMax: 12, leftMin: 25, leftMax: 45 },
+  { topMin: 2, topMax: 12, leftMin: 55, leftMax: 75 },
+  { topMin: 2, topMax: 12, leftMin: 80, leftMax: 95 },
+  // Bottom edge - full width
+  { topMin: 88, topMax: 96, leftMin: 2, leftMax: 20 },
+  { topMin: 88, topMax: 96, leftMin: 25, leftMax: 45 },
+  { topMin: 88, topMax: 96, leftMin: 55, leftMax: 75 },
+  { topMin: 88, topMax: 96, leftMin: 80, leftMax: 95 },
+  // Left edge - middle section
+  { topMin: 15, topMax: 35, leftMin: 2, leftMax: 18 },
+  { topMin: 40, topMax: 60, leftMin: 2, leftMax: 18 },
+  { topMin: 65, topMax: 85, leftMin: 2, leftMax: 18 },
+  // Right edge - middle section
+  { topMin: 15, topMax: 35, leftMin: 82, leftMax: 96 },
+  { topMin: 40, topMax: 60, leftMin: 82, leftMax: 96 },
+  { topMin: 65, topMax: 85, leftMin: 82, leftMax: 96 },
+  // Corner areas for extra coverage
+  { topMin: 15, topMax: 25, leftMin: 20, leftMax: 28 },
+  { topMin: 15, topMax: 25, leftMin: 72, leftMax: 80 },
+  { topMin: 75, topMax: 85, leftMin: 20, leftMax: 28 },
+  { topMin: 75, topMax: 85, leftMin: 72, leftMax: 80 },
+];
+
+// Generate cards function - called only on client side
+const generateProductCards = (): ProductCard[] => {
+  return zones.map((zone, index) => ({
+    id: index,
+    top: zone.topMin + Math.random() * (zone.topMax - zone.topMin),
+    left: zone.leftMin + Math.random() * (zone.leftMax - zone.leftMin),
+    width: 65 + Math.random() * 45,
+    height: 75 + Math.random() * 50,
+    rotation: -15 + Math.random() * 30,
+    image: productImages[index % productImages.length],
+  }));
+};
 
 // Individual product card component with its own hover state for zoom
 const ProductCardItem: React.FC<{ card: ProductCard; bgHovered: boolean }> = ({
@@ -87,62 +127,17 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBgHovered, setIsBgHovered] = useState(false);
+  const [productCards, setProductCards] = useState<ProductCard[]>([]);
 
-  // Generate evenly distributed positions for product cards across all edges
-  const productCards = useMemo<ProductCard[]>(() => {
-    const cards: ProductCard[] = [];
-
-    // Define zones around the edges (avoiding center form area)
-    // Zone format: { topMin, topMax, leftMin, leftMax }
-    const zones = [
-      // Top edge - full width
-      { topMin: 2, topMax: 12, leftMin: 2, leftMax: 20 },
-      { topMin: 2, topMax: 12, leftMin: 25, leftMax: 45 },
-      { topMin: 2, topMax: 12, leftMin: 55, leftMax: 75 },
-      { topMin: 2, topMax: 12, leftMin: 80, leftMax: 95 },
-      // Bottom edge - full width
-      { topMin: 88, topMax: 96, leftMin: 2, leftMax: 20 },
-      { topMin: 88, topMax: 96, leftMin: 25, leftMax: 45 },
-      { topMin: 88, topMax: 96, leftMin: 55, leftMax: 75 },
-      { topMin: 88, topMax: 96, leftMin: 80, leftMax: 95 },
-      // Left edge - middle section
-      { topMin: 15, topMax: 35, leftMin: 2, leftMax: 18 },
-      { topMin: 40, topMax: 60, leftMin: 2, leftMax: 18 },
-      { topMin: 65, topMax: 85, leftMin: 2, leftMax: 18 },
-      // Right edge - middle section
-      { topMin: 15, topMax: 35, leftMin: 82, leftMax: 96 },
-      { topMin: 40, topMax: 60, leftMin: 82, leftMax: 96 },
-      { topMin: 65, topMax: 85, leftMin: 82, leftMax: 96 },
-      // Corner areas for extra coverage
-      { topMin: 15, topMax: 25, leftMin: 20, leftMax: 28 },
-      { topMin: 15, topMax: 25, leftMin: 72, leftMax: 80 },
-      { topMin: 75, topMax: 85, leftMin: 20, leftMax: 28 },
-      { topMin: 75, topMax: 85, leftMin: 72, leftMax: 80 },
-    ];
-
-    // Place one card in each zone with random position within that zone
-    zones.forEach((zone, index) => {
-      const top = zone.topMin + Math.random() * (zone.topMax - zone.topMin);
-      const left = zone.leftMin + Math.random() * (zone.leftMax - zone.leftMin);
-
-      cards.push({
-        id: index,
-        top,
-        left,
-        width: 65 + Math.random() * 45,
-        height: 75 + Math.random() * 50,
-        rotation: -15 + Math.random() * 30,
-        image: productImages[index % productImages.length],
-      });
-    });
-
-    return cards;
+  // Generate random positions only on client side to avoid hydration mismatch
+  useEffect(() => {
+    setProductCards(generateProductCards());
   }, []);
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      router.push("/account");
+      router.push("/");
     }
   }, [user, router]);
 
@@ -170,14 +165,14 @@ export default function LoginPage() {
 
       const result = await signup(name, email, password);
       if (result.success) {
-        router.push("/account");
+        router.push("/");
       } else {
         setError(result.error || "Signup failed");
       }
     } else {
       const result = await login(email, password);
       if (result.success) {
-        router.push("/account");
+        router.push("/");
       } else {
         setError(result.error || "Login failed");
       }

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"e:\\\\AIB\\\\Cleanse Ayurveda\\\\frontend\\\\consumer\\\\src\"\" 2>/dev/null || echo \"Direct listing failed \")",
+      "Bash(npm install:*)"
+    ]
+  }
+}

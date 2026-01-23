@@ -20,34 +20,13 @@ interface ImageBoxProps {
 }
 
 const ImageBox: React.FC<ImageBoxProps> = ({ image, alt }) => (
-  <div
-    style={{
-      width: "208px",
-      height: "208px",
-      position: "relative",
-    }}
-  >
+  <div className="relative h-32 w-32 md:h-40 md:w-40 lg:h-48 lg:w-48 xl:h-52 xl:w-52">
     {/* Dashed line on top */}
-    <div
-      style={{
-        width: "174px",
-        height: "0px",
-        borderTop: "2px dashed #FFFFFF",
-        position: "absolute",
-        top: "16px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: 10,
-      }}
-    />
+    <div className="absolute left-1/2 top-3 z-10 w-3/4 -translate-x-1/2 border-t-2 border-dashed border-white" />
     <img
       src={image}
       alt={alt}
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-      }}
+      className="h-full w-full object-cover"
     />
   </div>
 );
@@ -62,97 +41,31 @@ export const InstagramSection: React.FC = () => {
   ];
 
   return (
-    <section
-      className="bg-off-white"
-      style={{
-        width: "100%",
-        paddingTop: "120px",
-        paddingBottom: "200px",
-      }}
-    >
+    <section className="w-full bg-off-white py-20 lg:py-28 xl:py-32">
       {/* Green Background Container */}
-      <div
-        style={{
-          width: "100%",
-          backgroundColor: "#D5DCCE",
-          display: "flex",
-          justifyContent: "center",
-          paddingTop: "60px",
-          paddingBottom: "60px",
-        }}
-      >
-      {/* Center Container */}
-      <div
-        style={{
-          width: "1512px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {/* Instagram Handle */}
-        <div
-          style={{
-            width: "242px",
-            height: "30px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            marginBottom: "16px",
-          }}
-        >
-          <InstagramIcon />
-          <span
-            style={{
-              width: "204px",
-              height: "20px",
-              fontFamily: "Lexend Exa, sans-serif",
-              fontWeight: 700,
-              fontSize: "16px",
-              lineHeight: "100%",
-              letterSpacing: "0.05em",
-              color: "#000000",
-            }}
-          >
-            @CleanseAyurveda
-          </span>
-        </div>
+      <div className="flex w-full justify-center bg-[#D5DCCE] px-8 py-12 md:px-12 lg:px-16 lg:py-16 xl:px-20 2xl:px-24">
+        {/* Center Container */}
+        <div className="mx-auto flex w-full max-w-[1920px] flex-col items-center justify-center">
+          {/* Instagram Handle */}
+          <div className="mb-4 flex items-center justify-center gap-2">
+            <InstagramIcon />
+            <span className="font-lexend-exa text-sm font-bold tracking-wide text-black lg:text-base">
+              @CleanseAyurveda
+            </span>
+          </div>
 
-        {/* Clean Living Title */}
-        <h2
-          style={{
-            width: "678px",
-            height: "45px",
-            fontFamily: "Lexend Exa, sans-serif",
-            fontWeight: 400,
-            fontSize: "36px",
-            lineHeight: "100%",
-            letterSpacing: "0",
-            textAlign: "center",
-            textTransform: "uppercase",
-            color: "#000000",
-            marginBottom: "40px",
-          }}
-        >
-          CLEAN LIVING
-        </h2>
+          {/* Clean Living Title */}
+          <h2 className="mb-8 text-center font-lexend-exa text-2xl font-normal uppercase text-black md:text-3xl lg:mb-10 lg:text-4xl">
+            CLEAN LIVING
+          </h2>
 
-        {/* Image Grid */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "24px",
-          }}
-        >
-          {images.map((img, index) => (
-            <ImageBox key={index} image={img.src} alt={img.alt} />
-          ))}
+          {/* Image Grid */}
+          <div className="grid grid-cols-3 gap-3 md:grid-cols-5 md:gap-4 lg:gap-6">
+            {images.map((img, index) => (
+              <ImageBox key={index} image={img.src} alt={img.alt} />
+            ))}
+          </div>
         </div>
-      </div>
       </div>
     </section>
   );

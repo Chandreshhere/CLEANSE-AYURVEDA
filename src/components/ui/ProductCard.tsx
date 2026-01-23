@@ -5,19 +5,35 @@ import Link from "next/link";
 import { useCart } from "@/context";
 
 interface ProductCardProps {
-  id: number;
+  // Support both old format (id) and new format (slug)
+  id?: number | string;
+  slug?: string;
   name: string;
   description: string;
-  price: number;
+  // Support both old format (price) and new format (pricing object)
+  price?: number;
+  pricing?: {
+    mrp: number;
+    salePrice: number;
+    discountPercent: number;
+  };
+  // Support both old format (image) and new format (primaryImage object)
   image?: string;
+  primaryImage?: {
+    url: string;
+    altText: string;
+  };
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   id,
+  slug,
   name,
   description,
   price,
+  pricing,
   image,
+  primaryImage,
 }) => {
   const { openCartDrawer } = useCart();
 
@@ -26,22 +42,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     openCartDrawer();
   };
 
+  // Determine which link format to use (prioritize slug over id)
+  const productLink = slug ? `/product/${slug}` : `/product/${id}`;
+
+  // Determine which image to use (prioritize primaryImage over image)
+  const imageUrl = primaryImage?.url || image;
+  const imageAlt = primaryImage?.altText || name;
+
+  // Determine which price to display (prioritize pricing.salePrice over price)
+  const displayPrice = pricing?.salePrice || price;
+  const originalPrice = pricing?.mrp;
+  const discount = pricing?.discountPercent;
+
   return (
-    <div className="flex flex-col">
+    <div className="flex w-full max-w-[329px] flex-col lg:max-w-[350px] xl:max-w-[380px] 2xl:max-w-[400px]">
       {/* Product Image - Clickable */}
-      <Link href={`/product/${id}`} className="group cursor-pointer">
-        <div
-          className="overflow-hidden bg-white"
-          style={{
-            width: "329px",
-            height: "367px",
-            borderRadius: "12px",
-          }}
-        >
-          {image ? (
+      <Link href={productLink} className="group cursor-pointer">
+        <div className="aspect-[329/367] w-full overflow-hidden rounded-xl bg-white">
+          {imageUrl ? (
             <img
-              src={image}
-              alt={name}
+              src={imageUrl}
+              alt={imageAlt}
               className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
             />
           ) : (
@@ -56,72 +77,44 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="mt-4 flex flex-col">
         {/* Product Name */}
         <h3
-          className="text-black"
-          style={{
-            width: "213px",
-            height: "45px",
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 700,
-            fontSize: "24px",
-            lineHeight: "100%",
-            letterSpacing: "0",
-          }}
+          className="font-lexend text-xl font-bold text-black lg:text-2xl"
+          style={{ lineHeight: "100%" }}
         >
           {name}
         </h3>
 
         {/* Product Description */}
         <p
-          className="text-black"
-          style={{
-            width: "305px",
-            height: "43px",
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 400,
-            fontSize: "20px",
-            lineHeight: "100%",
-            letterSpacing: "0",
-          }}
+          className="mt-1 font-inter text-base text-black lg:text-lg xl:text-xl"
+          style={{ lineHeight: "120%" }}
         >
           {description}
         </p>
 
         {/* Price and CTA */}
-        <div className="flex items-center gap-4">
-          {/* Price */}
-          <span
-            className="text-black"
-            style={{
-              width: "97px",
-              height: "43px",
-              fontFamily: "Inter, sans-serif",
-              fontWeight: 400,
-              fontSize: "24px",
-              lineHeight: "100%",
-              letterSpacing: "0",
-              verticalAlign: "middle",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            ₹{price}
-          </span>
+        <div className="mt-3 flex flex-wrap items-center gap-3 lg:gap-4">
+          {/* Price with discount display */}
+          <div className="flex items-center gap-2">
+            <span className="font-inter text-xl font-normal text-black lg:text-2xl">
+              ₹{displayPrice}
+            </span>
+            {originalPrice && originalPrice > displayPrice && (
+              <>
+                <span className="font-inter text-sm text-gray-500 line-through lg:text-base">
+                  ₹{originalPrice}
+                </span>
+                {discount && (
+                  <span className="font-inter text-sm font-medium text-green-600 lg:text-base">
+                    {discount}% OFF
+                  </span>
+                )}
+              </>
+            )}
+          </div>
 
           {/* Quick Add Button */}
           <button
-            className="bg-dark-brown text-white"
-            style={{
-              width: "213px",
-              height: "43px",
-              paddingTop: "6px",
-              paddingRight: "46px",
-              paddingBottom: "6px",
-              paddingLeft: "46px",
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 500,
-              fontSize: "14px",
-              cursor: "pointer",
-            }}
+            className="flex-1 bg-dark-brown px-6 py-2.5 font-lexend text-sm font-medium text-white transition-opacity hover:opacity-90 lg:px-8 lg:py-3"
             onClick={handleQuickAdd}
           >
             Quick Add

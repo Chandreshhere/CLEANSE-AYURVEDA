@@ -1,30 +1,14 @@
+"use client";
+
 import React from "react";
 
 export const Footer: React.FC = () => {
   return (
-    <footer
-      style={{
-        width: "1512px",
-        maxWidth: "100%",
-        height: "727px",
-        margin: "0 auto",
-        backgroundColor: "#3D2B27",
-        paddingTop: "80px",
-        paddingBottom: "40px",
-        paddingLeft: "67px",
-        paddingRight: "67px",
-      }}
-    >
+    <footer className="mx-auto w-full max-w-[1920px] bg-[#3D2B27] px-8 py-16 md:px-12 md:py-20 lg:px-16 xl:px-20 2xl:px-24">
       {/* Top Section */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "80px",
-        }}
-      >
+      <div className="mb-16 flex flex-col justify-between gap-10 lg:mb-20 lg:flex-row lg:gap-20">
         {/* Left Column - Brand Info */}
-        <div style={{ maxWidth: "520px" }}>
+        <div className="max-w-xl flex-1">
           <h2
             style={{
               fontFamily: "Lexend Exa, sans-serif",
@@ -54,7 +38,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Right Column - Blog Enrollment */}
-        <div style={{ width: "400px" }}>
+        <div className="w-full max-w-md lg:w-auto lg:min-w-[350px] xl:min-w-[400px]">
           <h3
             style={{
               fontFamily: "Lexend, sans-serif",
@@ -135,13 +119,7 @@ export const Footer: React.FC = () => {
       />
 
       {/* Middle Section - Links */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "80px",
-        }}
-      >
+      <div className="mb-16 flex flex-wrap justify-between gap-8 lg:mb-20 lg:gap-12">
         {/* Categories */}
         <div>
           <h4
@@ -180,7 +158,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Pages */}
-        <div style={{ marginLeft: "120px" }}>
+        <div>
           <h4
             style={{
               fontFamily: "Lexend, sans-serif",
@@ -268,13 +246,7 @@ export const Footer: React.FC = () => {
       />
 
       {/* Bottom Section - Copyright */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div className="flex flex-col items-center justify-between gap-4 lg:flex-row">
         <p
           style={{
             fontFamily: "Lexend, sans-serif",
@@ -288,7 +260,7 @@ export const Footer: React.FC = () => {
         >
           @2026 CLEANSE AYURVEDA . ALL RIGHTS RESERVED
         </p>
-        <div style={{ display: "flex", gap: "40px" }}>
+        <div className="flex gap-6 lg:gap-10">
           <a
             href="#"
             style={{

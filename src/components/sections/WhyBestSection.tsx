@@ -15,51 +15,14 @@ const ProductSpotlightCard: React.FC<ProductSpotlightCardProps & { imageSize: Sp
   title,
   price,
   image,
-  imageSize,
 }) => (
-  <div
-    className="relative overflow-hidden bg-muted-beige"
-    style={{
-      width: "330px",
-      height: "335px",
-      borderRadius: "20px",
-    }}
-  >
+  <div className="relative h-[280px] w-full max-w-[300px] overflow-hidden rounded-2xl bg-muted-beige lg:h-[320px] lg:max-w-[330px] xl:h-[335px]">
     {/* Text at top left */}
-    <div
-      style={{
-        position: "absolute",
-        top: "20px",
-        left: "20px",
-      }}
-    >
-      <p
-        className="text-black"
-        style={{
-          width: "216px",
-          height: "30px",
-          fontFamily: "Lexend, sans-serif",
-          fontWeight: 700,
-          fontSize: "24px",
-          lineHeight: "100%",
-          letterSpacing: "0",
-          marginBottom: "2px",
-        }}
-      >
+    <div className="absolute left-5 top-5">
+      <p className="font-lexend text-xl font-bold text-black lg:text-2xl">
         {title}
       </p>
-      <p
-        className="text-black"
-        style={{
-          width: "56px",
-          height: "30px",
-          fontFamily: "Lexend, sans-serif",
-          fontWeight: 400,
-          fontSize: "24px",
-          lineHeight: "100%",
-          letterSpacing: "0",
-        }}
-      >
+      <p className="font-lexend text-xl font-normal text-black lg:text-2xl">
         {price}
       </p>
     </div>
@@ -67,17 +30,7 @@ const ProductSpotlightCard: React.FC<ProductSpotlightCardProps & { imageSize: Sp
     <img
       src={image}
       alt={title}
-      style={{
-        width: imageSize.width,
-        height: imageSize.height,
-        objectFit: "contain",
-        position: "absolute",
-        bottom: "10px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        maxWidth: "90%",
-        maxHeight: "230px",
-      }}
+      className="absolute bottom-2 left-1/2 h-auto max-h-[200px] w-auto max-w-[90%] -translate-x-1/2 object-contain lg:max-h-[230px]"
     />
   </div>
 );
@@ -101,47 +54,23 @@ const FloatingProductCard: React.FC<FloatingProductCardProps> = ({
   position,
 }) => (
   <div
-    className="absolute flex items-center bg-muted-beige"
+    className="absolute hidden items-center rounded-2xl bg-muted-beige p-4 lg:flex"
     style={{
-      width: "365px",
-      height: "164px",
-      borderRadius: "20px",
-      padding: "16px",
+      width: "clamp(280px, 25vw, 365px)",
+      height: "clamp(140px, 12vw, 164px)",
       ...position,
     }}
   >
     <img
       src={image}
       alt={name}
-      style={{
-        width: "96px",
-        height: "131px",
-        borderRadius: "8px",
-        objectFit: "contain",
-      }}
+      className="h-[100px] w-[80px] rounded-lg object-contain lg:h-[131px] lg:w-[96px]"
     />
     <div className="ml-4">
-      <p
-        className="text-black"
-        style={{
-          fontFamily: "Lexend, sans-serif",
-          fontWeight: 600,
-          fontSize: "18px",
-          lineHeight: "100%",
-          marginBottom: "8px",
-        }}
-      >
+      <p className="mb-2 font-lexend text-base font-semibold text-black lg:text-lg">
         {name}
       </p>
-      <p
-        className="text-black"
-        style={{
-          fontFamily: "Inter, sans-serif",
-          fontWeight: 400,
-          fontSize: "16px",
-          lineHeight: "100%",
-        }}
-      >
+      <p className="font-inter text-sm font-normal text-black lg:text-base">
         {price}
       </p>
     </div>
@@ -151,23 +80,11 @@ const FloatingProductCard: React.FC<FloatingProductCardProps> = ({
 export const WhyBestSection: React.FC = () => {
   return (
     <section className="w-full bg-off-white">
-      <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
+      <div className="mx-auto max-w-[1920px] px-8 py-16 md:px-12 lg:px-16 lg:py-20 xl:px-20 xl:py-24 2xl:px-24">
         {/* Section Header Row */}
-        <div className="mb-12 flex items-start justify-between">
+        <div className="mb-10 flex flex-col gap-6 lg:mb-12 lg:flex-row lg:items-start lg:justify-between">
           {/* Left - Main Heading */}
-          <h2
-            className="text-black"
-            style={{
-              width: "678px",
-              height: "106px",
-              fontFamily: "Lexend Exa, sans-serif",
-              fontWeight: 400,
-              fontSize: "42px",
-              lineHeight: "100%",
-              letterSpacing: "0",
-              textTransform: "uppercase",
-            }}
-          >
+          <h2 className="font-lexend-exa text-2xl font-normal uppercase text-black md:text-3xl lg:text-4xl xl:text-[42px]" style={{ lineHeight: "120%" }}>
             WHY YOUR SKIN
             <br />
             DESERVES THE BEST?
@@ -176,29 +93,11 @@ export const WhyBestSection: React.FC = () => {
           {/* Right - Rating Group */}
           <div className="flex items-start gap-4">
             <div className="text-right">
-              <p
-                className="text-black"
-                style={{
-                  width: "308px",
-                  height: "34px",
-                  fontFamily: "Lexend Exa, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  textTransform: "uppercase",
-                }}
-              >
+              <p className="font-lexend-exa text-lg font-normal uppercase text-black lg:text-xl xl:text-2xl">
                 4+ STAR RATINGS
               </p>
               {/* Stars */}
-              <div
-                className="mt-2 flex justify-end"
-                style={{
-                  width: "126px",
-                  height: "28px",
-                  marginLeft: "auto",
-                }}
-              >
+              <div className="ml-auto mt-2 flex justify-end">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <svg
                     key={star}
@@ -213,182 +112,45 @@ export const WhyBestSection: React.FC = () => {
               </div>
             </div>
             {/* Grey Overlapping Circles */}
-            <div
-              style={{
-                width: "77px",
-                height: "25px",
-                position: "relative",
-              }}
-            >
-              <div
-                style={{
-                  width: "25px",
-                  height: "25px",
-                  borderRadius: "50%",
-                  backgroundColor: "#E5E5E5",
-                  border: "1px solid #D0D0D0",
-                  position: "absolute",
-                  left: "0px",
-                  top: "0px",
-                }}
-              />
-              <div
-                style={{
-                  width: "25px",
-                  height: "25px",
-                  borderRadius: "50%",
-                  backgroundColor: "#C4C4C4",
-                  border: "1px solid #B0B0B0",
-                  position: "absolute",
-                  left: "16px",
-                  top: "0px",
-                }}
-              />
-              <div
-                style={{
-                  width: "25px",
-                  height: "25px",
-                  borderRadius: "50%",
-                  backgroundColor: "#9E9E9E",
-                  border: "1px solid #8A8A8A",
-                  position: "absolute",
-                  left: "32px",
-                  top: "0px",
-                }}
-              />
-              <div
-                style={{
-                  width: "25px",
-                  height: "25px",
-                  borderRadius: "50%",
-                  backgroundColor: "#6B6B6B",
-                  border: "1px solid #5A5A5A",
-                  position: "absolute",
-                  left: "48px",
-                  top: "0px",
-                }}
-              />
+            <div className="relative hidden h-6 w-20 lg:block">
+              <div className="absolute left-0 top-0 h-6 w-6 rounded-full border border-[#D0D0D0] bg-[#E5E5E5]" />
+              <div className="absolute left-4 top-0 h-6 w-6 rounded-full border border-[#B0B0B0] bg-[#C4C4C4]" />
+              <div className="absolute left-8 top-0 h-6 w-6 rounded-full border border-[#8A8A8A] bg-[#9E9E9E]" />
+              <div className="absolute left-12 top-0 h-6 w-6 rounded-full border border-[#5A5A5A] bg-[#6B6B6B]" />
             </div>
           </div>
         </div>
 
         {/* Card Grid - Top Row */}
-        <div className="flex gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:gap-8">
           {/* Card 1 - Large Image Card */}
-          <div
-            className="relative overflow-hidden"
-            style={{
-              width: "679px",
-              height: "754px",
-              borderRadius: "20px",
-            }}
-          >
+          <div className="relative aspect-[679/754] w-full overflow-hidden rounded-2xl">
             <img
               src="/why-best-woman.png"
               alt="Woman holding Cleanse Ayurveda serum"
-              className="h-full w-full object-cover"
-              style={{
-                objectPosition: "center top",
-              }}
+              className="h-full w-full object-cover object-top"
             />
             {/* Overlay Content Card */}
-            <div
-              className="absolute bg-muted-beige"
-              style={{
-                width: "365px",
-                height: "164px",
-                borderRadius: "20px",
-                bottom: "24px",
-                right: "24px",
-                padding: "24px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "flex-end",
-              }}
-            >
-              <p
-                className="text-black"
-                style={{
-                  width: "252px",
-                  height: "30px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "right",
-                  marginBottom: "12px",
-                }}
-              >
+            <div className="absolute bottom-4 right-4 flex flex-col items-end justify-center rounded-2xl bg-muted-beige p-4 lg:bottom-6 lg:right-6 lg:p-6">
+              <p className="mb-2 text-right font-lexend text-lg font-bold text-black lg:text-xl xl:text-2xl">
                 Proven Effectiveness
               </p>
-              <p
-                className="text-black"
-                style={{
-                  width: "236px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "20px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "right",
-                }}
-              >
+              <p className="text-right font-lexend text-base font-normal text-black lg:text-lg xl:text-xl">
                 Some stat to prove the same
               </p>
             </div>
           </div>
 
           {/* Right Column */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 xl:gap-8">
             {/* Card 2 - Eco Friendly Packaging */}
-            <div
-              className="relative overflow-hidden"
-              style={{
-                width: "679px",
-                height: "393px",
-                borderRadius: "20px",
-                backgroundColor: "#6B7B6E",
-              }}
-            >
+            <div className="relative h-[300px] w-full overflow-hidden rounded-2xl bg-[#6B7B6E] lg:h-[350px] xl:h-[393px]">
               {/* Text Content - positioned with z-index to stay above image */}
-              <div
-                className="absolute z-10"
-                style={{
-                  top: "40px",
-                  left: "32px",
-                }}
-              >
-                <h3
-                  className="text-cream"
-                  style={{
-                    width: "410px",
-                    height: "30px",
-                    fontFamily: "Lexend Exa, sans-serif",
-                    fontWeight: 700,
-                    fontSize: "24px",
-                    lineHeight: "100%",
-                    letterSpacing: "0",
-                    textTransform: "uppercase",
-                    marginBottom: "20px",
-                  }}
-                >
+              <div className="absolute left-6 top-6 z-10 lg:left-8 lg:top-10">
+                <h3 className="mb-4 font-lexend-exa text-lg font-bold uppercase text-cream lg:mb-5 lg:text-xl xl:text-2xl">
                   ECO FRIENDLY PACKAGING
                 </h3>
-                <p
-                  style={{
-                    width: "345px",
-                    height: "115px",
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "18px",
-                    lineHeight: "100%",
-                    letterSpacing: "0",
-                    color: "rgba(245, 237, 224, 0.68)",
-                  }}
-                >
+                <p className="max-w-[300px] font-lexend text-sm font-normal text-cream/70 lg:max-w-[345px] lg:text-base xl:text-lg" style={{ lineHeight: "140%" }}>
                   Lorem sit officia sint esse veniam aliquip ullamco ea consequat
                   aute consectetur exercitation quis do Lorem veniam mollit ut
                   nostrud commodo aute
@@ -398,19 +160,12 @@ export const WhyBestSection: React.FC = () => {
               <img
                 src="/eco-packaging.png"
                 alt="Eco friendly packaging"
-                style={{
-                  width: "748px",
-                  height: "546px",
-                  objectFit: "contain",
-                  position: "absolute",
-                  right: "0px",
-                  top: "-80px",
-                }}
+                className="absolute -top-10 right-0 h-auto w-[500px] object-contain lg:-top-20 lg:w-[600px] xl:w-[748px]"
               />
             </div>
 
             {/* Bottom Row - Product Spotlights */}
-            <div className="flex gap-6">
+            <div className="grid grid-cols-2 gap-4 lg:gap-6">
               <ProductSpotlightCard
                 title="Product Spotlight"
                 price="₹700"
@@ -428,28 +183,11 @@ export const WhyBestSection: React.FC = () => {
         </div>
 
         {/* Full-Width Product Display */}
-        <div
-          className="relative mt-16"
-          style={{
-            width: "calc(100% + 256px)",
-            marginLeft: "-128px",
-            marginRight: "-128px",
-            height: "859px",
-            backgroundColor: "#ECECEC",
-            overflow: "hidden",
-          }}
-        >
+        <div className="relative -mx-8 mt-12 h-[400px] overflow-hidden bg-[#ECECEC] md:-mx-12 md:h-[500px] lg:-mx-16 lg:mt-16 lg:h-[600px] xl:-mx-20 xl:h-[750px] 2xl:-mx-24 2xl:h-[859px]">
           <img
             src="/product-display.png"
             alt="Product arrangement with serum and cream"
-            style={{
-              width: "1367px",
-              height: "855px",
-              objectFit: "contain",
-              position: "absolute",
-              left: "0",
-              top: "0",
-            }}
+            className="absolute left-0 top-0 h-full w-auto max-w-none object-contain"
           />
 
           {/* Floating Product Cards */}
@@ -457,13 +195,13 @@ export const WhyBestSection: React.FC = () => {
             name="The Face Serum"
             price="₹700-800"
             image="/serum-small.png"
-            position={{ top: "80px", right: "200px" }}
+            position={{ top: "10%", right: "10%" }}
           />
           <FloatingProductCard
             name="The Hydrating Cream"
             price="₹700-800"
             image="/cream-small.png"
-            position={{ bottom: "200px", left: "100px" }}
+            position={{ bottom: "20%", left: "5%" }}
           />
         </div>
       </div>

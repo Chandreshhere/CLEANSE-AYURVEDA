@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TopUtilityBar, MainHeader, Footer } from "@/components/layout";
 import { useAuth } from "@/context";
+import { useRequireAuth } from "@/hooks";
 
 type TabType = "dashboard" | "orders" | "wishlist" | "rewards" | "addresses" | "payment";
 
@@ -11,62 +12,26 @@ type TabType = "dashboard" | "orders" | "wishlist" | "rewards" | "addresses" | "
 const DashboardContent: React.FC<{ userName: string }> = ({ userName }) => (
   <>
     {/* Header Row */}
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        marginBottom: "32px",
-      }}
-    >
-      <h1
-        style={{
-          fontFamily: "Lexend Exa, sans-serif",
-          fontWeight: 400,
-          fontSize: "36px",
-          color: "#000000",
-          textTransform: "uppercase",
-        }}
-      >
+    <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between lg:mb-8">
+      <h1 className="font-lexend-exa text-2xl font-normal uppercase text-black lg:text-3xl xl:text-4xl">
         DASHBOARD
       </h1>
-      <p
-        style={{
-          fontFamily: "Lexend, sans-serif",
-          fontWeight: 400,
-          fontSize: "14px",
-          color: "#666666",
-          textTransform: "uppercase",
-        }}
-      >
+      <p className="font-lexend text-sm font-normal uppercase text-[#666666]">
         WELCOME BACK, {userName.toUpperCase()}
       </p>
     </div>
 
     {/* Stats Cards */}
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "24px",
-        marginBottom: "48px",
-      }}
-    >
+    <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:mb-12 lg:grid-cols-3 lg:gap-6">
       {/* Royalty Points Card */}
-      <div
-        style={{
-          border: "1px solid #E5E5E5",
-          borderRadius: "8px",
-          padding: "24px",
-        }}
-      >
+      <div className="rounded-lg border border-[#E5E5E5] p-5 lg:p-6">
         <svg
           width="24"
           height="24"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          style={{ marginBottom: "16px" }}
+          className="mb-4"
         >
           <path
             d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -76,92 +41,30 @@ const DashboardContent: React.FC<{ userName: string }> = ({ userName }) => (
             strokeLinejoin="round"
           />
         </svg>
-        <p
-          style={{
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 700,
-            fontSize: "32px",
-            color: "#000000",
-            marginBottom: "8px",
-          }}
-        >
+        <p className="mb-2 font-lexend text-2xl font-bold text-black lg:text-[32px]">
           1240
         </p>
-        <p
-          style={{
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 400,
-            fontSize: "12px",
-            color: "#999999",
-            textTransform: "uppercase",
-          }}
-        >
+        <p className="font-lexend text-xs font-normal uppercase text-[#999999]">
           AVAILABLE ROYALTY POINTS
         </p>
       </div>
 
       {/* Orders Pending Card */}
-      <div
-        style={{
-          border: "1px solid #E5E5E5",
-          borderRadius: "8px",
-          padding: "24px",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 700,
-            fontSize: "32px",
-            color: "#000000",
-            marginBottom: "8px",
-            marginTop: "40px",
-          }}
-        >
+      <div className="rounded-lg border border-[#E5E5E5] p-5 lg:p-6">
+        <p className="mb-2 mt-8 font-lexend text-2xl font-bold text-black lg:mt-10 lg:text-[32px]">
           2
         </p>
-        <p
-          style={{
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 400,
-            fontSize: "12px",
-            color: "#999999",
-            textTransform: "uppercase",
-          }}
-        >
+        <p className="font-lexend text-xs font-normal uppercase text-[#999999]">
           ORDERS PENDING
         </p>
       </div>
 
       {/* Orders Completed Card */}
-      <div
-        style={{
-          border: "1px solid #E5E5E5",
-          borderRadius: "8px",
-          padding: "24px",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 700,
-            fontSize: "32px",
-            color: "#000000",
-            marginBottom: "8px",
-            marginTop: "40px",
-          }}
-        >
+      <div className="rounded-lg border border-[#E5E5E5] p-5 lg:p-6">
+        <p className="mb-2 mt-8 font-lexend text-2xl font-bold text-black lg:mt-10 lg:text-[32px]">
           12
         </p>
-        <p
-          style={{
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 400,
-            fontSize: "12px",
-            color: "#999999",
-            textTransform: "uppercase",
-          }}
-        >
+        <p className="font-lexend text-xs font-normal uppercase text-[#999999]">
           ORDERS COMPLETED
         </p>
       </div>
@@ -169,64 +72,20 @@ const DashboardContent: React.FC<{ userName: string }> = ({ userName }) => (
 
     {/* Recent Orders Section */}
     <div>
-      <h2
-        style={{
-          fontFamily: "Lexend, sans-serif",
-          fontWeight: 600,
-          fontSize: "14px",
-          color: "#000000",
-          textTransform: "uppercase",
-          marginBottom: "16px",
-          paddingBottom: "16px",
-          borderBottom: "1px solid #000000",
-        }}
-      >
+      <h2 className="mb-4 border-b border-black pb-4 font-lexend text-sm font-semibold uppercase text-black">
         RECENT ORDERS
       </h2>
 
       {/* Order Item */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "16px",
-          padding: "16px",
-          border: "1px solid #E5E5E5",
-          borderRadius: "8px",
-        }}
-      >
+      <div className="flex items-center gap-4 rounded-lg border border-[#E5E5E5] p-4">
         {/* Order Image */}
-        <div
-          style={{
-            width: "60px",
-            height: "60px",
-            backgroundColor: "#E5E5E5",
-            borderRadius: "4px",
-            flexShrink: 0,
-          }}
-        />
+        <div className="h-[60px] w-[60px] shrink-0 rounded bg-[#E5E5E5]" />
         {/* Order Details */}
         <div>
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 600,
-              fontSize: "14px",
-              color: "#000000",
-              textTransform: "uppercase",
-              marginBottom: "4px",
-            }}
-          >
+          <p className="mb-1 font-lexend text-sm font-semibold uppercase text-black">
             ORDER CLE-9941
           </p>
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "12px",
-              color: "#666666",
-            }}
-          >
+          <p className="font-lexend text-xs font-normal text-[#666666]">
             Jan 12,2025 &nbsp;&nbsp;In-Transit
           </p>
         </div>
@@ -257,182 +116,69 @@ const OrderHistoryContent: React.FC = () => {
 
   return (
     <>
-      <h1
-        style={{
-          fontFamily: "Lexend Exa, sans-serif",
-          fontWeight: 400,
-          fontSize: "36px",
-          color: "#000000",
-          textTransform: "uppercase",
-          marginBottom: "32px",
-        }}
-      >
+      <h1 className="mb-6 font-lexend-exa text-2xl font-normal uppercase text-black lg:mb-8 lg:text-3xl xl:text-4xl">
         ORDER HISTORY
       </h1>
 
       {/* Orders List */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <div className="flex flex-col gap-4 lg:gap-6">
         {orders.map((order, orderIndex) => (
           <div
             key={orderIndex}
-            style={{
-              border: "1px solid #E5E5E5",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
+            className="overflow-hidden rounded-lg border border-[#E5E5E5]"
           >
             {/* Order Header */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "16px 24px",
-                backgroundColor: "#FAFAFA",
-                borderBottom: "1px solid #E5E5E5",
-              }}
-            >
-              <div style={{ display: "flex", gap: "48px" }}>
+            <div className="flex flex-col gap-4 border-b border-[#E5E5E5] bg-[#FAFAFA] px-4 py-4 sm:flex-row sm:justify-between lg:px-6">
+              <div className="flex flex-wrap gap-6 lg:gap-12">
                 <div>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "10px",
-                      color: "#999999",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
+                  <p className="mb-1 font-lexend text-[10px] font-normal uppercase text-[#999999]">
                     DATE ORDERED
                   </p>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "12px",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                    }}
-                  >
+                  <p className="font-lexend text-xs font-semibold uppercase text-black">
                     {order.date}
                   </p>
                 </div>
                 <div>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "10px",
-                      color: "#999999",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
+                  <p className="mb-1 font-lexend text-[10px] font-normal uppercase text-[#999999]">
                     TOTAL VALUE
                   </p>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "12px",
-                      color: "#000000",
-                    }}
-                  >
+                  <p className="font-lexend text-xs font-semibold text-black">
                     {order.total}
                   </p>
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <p
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "10px",
-                    color: "#999999",
-                    textTransform: "uppercase",
-                    marginBottom: "4px",
-                  }}
-                >
+              <div className="text-left sm:text-right">
+                <p className="mb-1 font-lexend text-[10px] font-normal uppercase text-[#999999]">
                   ORDER REFERENCE
                 </p>
-                <p
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "12px",
-                    color: "#000000",
-                  }}
-                >
+                <p className="font-lexend text-xs font-semibold text-black">
                   {order.id}
                 </p>
               </div>
             </div>
 
             {/* Order Items */}
-            <div style={{ padding: "16px 24px" }}>
+            <div className="px-4 py-4 lg:px-6">
               {order.items.map((item, itemIndex) => (
                 <div
                   key={itemIndex}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "16px 0",
-                    borderBottom:
-                      itemIndex < order.items.length - 1 ? "1px solid #E5E5E5" : "none",
-                  }}
+                  className={`flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between ${
+                    itemIndex < order.items.length - 1 ? "border-b border-[#E5E5E5]" : ""
+                  }`}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                  <div className="flex items-center gap-4">
                     {/* Product Image */}
-                    <div
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        backgroundColor: "#E5E5E5",
-                        borderRadius: "4px",
-                        flexShrink: 0,
-                      }}
-                    />
+                    <div className="h-[60px] w-[60px] shrink-0 rounded bg-[#E5E5E5]" />
                     <div>
-                      <p
-                        style={{
-                          fontFamily: "Lexend, sans-serif",
-                          fontWeight: 600,
-                          fontSize: "14px",
-                          color: "#000000",
-                          textTransform: "uppercase",
-                          marginBottom: "4px",
-                        }}
-                      >
+                      <p className="mb-1 font-lexend text-sm font-semibold uppercase text-black">
                         {item.name}
                       </p>
-                      <p
-                        style={{
-                          fontFamily: "Lexend, sans-serif",
-                          fontWeight: 400,
-                          fontSize: "12px",
-                          color: "#999999",
-                          textTransform: "uppercase",
-                        }}
-                      >
+                      <p className="font-lexend text-xs font-normal uppercase text-[#999999]">
                         PRODUCT ID : {item.productId}
                       </p>
                     </div>
                   </div>
-                  <button
-                    style={{
-                      padding: "12px 24px",
-                      backgroundColor: "transparent",
-                      border: "1px solid #000000",
-                      borderRadius: "4px",
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 500,
-                      fontSize: "12px",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      cursor: "pointer",
-                    }}
-                  >
+                  <button className="w-fit cursor-pointer rounded border border-black bg-transparent px-4 py-2.5 font-lexend text-xs font-medium uppercase text-black lg:px-6 lg:py-3">
                     ORDER AGAIN
                   </button>
                 </div>
@@ -468,52 +214,23 @@ const WishlistContent: React.FC = () => {
 
   return (
     <>
-      <h1
-        style={{
-          fontFamily: "Lexend Exa, sans-serif",
-          fontWeight: 400,
-          fontSize: "36px",
-          color: "#000000",
-          textTransform: "uppercase",
-          marginBottom: "32px",
-        }}
-      >
+      <h1 className="mb-6 font-lexend-exa text-2xl font-normal uppercase text-black lg:mb-8 lg:text-3xl xl:text-4xl">
         WISHLIST
       </h1>
 
       {/* Wishlist Grid */}
-      <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6 xl:grid-cols-3">
         {wishlistItems.map((item) => (
           <div
             key={item.id}
-            style={{
-              width: "280px",
-              border: "1px solid #E5E5E5",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
+            className="overflow-hidden rounded-lg border border-[#E5E5E5]"
           >
             {/* Card Header */}
-            <div
-              style={{
-                padding: "12px 16px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "10px",
-                  color: "#999999",
-                  textTransform: "uppercase",
-                }}
-              >
+            <div className="flex items-center justify-between px-4 py-3">
+              <p className="font-lexend text-[10px] font-normal uppercase text-[#999999]">
                 {item.category}
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <div className="flex items-center gap-1">
                 <svg
                   width="12"
                   height="12"
@@ -523,103 +240,32 @@ const WishlistContent: React.FC = () => {
                 >
                   <path d="M6 0L7.76393 3.52786L11.7063 4.1459L8.85317 6.92214L9.52786 10.8541L6 9L2.47214 10.8541L3.14683 6.92214L0.293661 4.1459L4.23607 3.52786L6 0Z" />
                 </svg>
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "12px",
-                    color: "#000000",
-                  }}
-                >
+                <span className="font-lexend text-xs font-medium text-black">
                   {item.rating}
                 </span>
               </div>
             </div>
 
             {/* Product Image */}
-            <div
-              style={{
-                width: "100%",
-                height: "200px",
-                backgroundColor: "#F5F5F5",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  width: "120px",
-                  height: "160px",
-                  backgroundColor: "#E5E5E5",
-                  borderRadius: "4px",
-                }}
-              />
+            <div className="flex h-[180px] w-full items-center justify-center bg-[#F5F5F5] lg:h-[200px]">
+              <div className="h-[140px] w-[100px] rounded bg-[#E5E5E5] lg:h-[160px] lg:w-[120px]" />
             </div>
 
             {/* Product Info */}
-            <div style={{ padding: "16px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "8px",
-                }}
-              >
-                <h3
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    color: "#000000",
-                    textTransform: "uppercase",
-                    maxWidth: "160px",
-                  }}
-                >
+            <div className="p-4">
+              <div className="mb-2 flex items-start justify-between">
+                <h3 className="max-w-[160px] font-lexend text-sm font-semibold uppercase text-black">
                   {item.name}
                 </h3>
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "16px",
-                    color: "#000000",
-                  }}
-                >
+                <span className="font-lexend text-base font-semibold text-black">
                   ₹{item.price}
                 </span>
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <p
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "12px",
-                    color: "#666666",
-                  }}
-                >
-                  "{item.description}"
+              <div className="flex items-center justify-between">
+                <p className="font-lexend text-xs font-normal text-[#666666]">
+                  &quot;{item.description}&quot;
                 </p>
-                <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "10px",
-                    color: "#000000",
-                    textTransform: "uppercase",
-                    textDecoration: "underline",
-                    cursor: "pointer",
-                  }}
-                >
+                <button className="cursor-pointer border-none bg-transparent font-lexend text-[10px] font-medium uppercase text-black underline">
                   VIEW CLINICALS
                 </button>
               </div>
@@ -650,106 +296,37 @@ const RewardsContent: React.FC = () => {
 
   return (
     <>
-      <h1
-        style={{
-          fontFamily: "Lexend Exa, sans-serif",
-          fontWeight: 400,
-          fontSize: "36px",
-          color: "#000000",
-          textTransform: "uppercase",
-          marginBottom: "32px",
-        }}
-      >
+      <h1 className="mb-6 font-lexend-exa text-2xl font-normal uppercase text-black lg:mb-8 lg:text-3xl xl:text-4xl">
         REWARDS & REFERALS
       </h1>
 
       {/* Reward Balance Card */}
-      <div
-        style={{
-          backgroundColor: "#F5F5F0",
-          borderRadius: "12px",
-          padding: "32px",
-          marginBottom: "32px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
+      <div className="mb-6 rounded-xl bg-[#F5F5F0] p-5 lg:mb-8 lg:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           {/* Left - Points Balance */}
           <div>
-            <p
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 400,
-                fontSize: "12px",
-                color: "#666666",
-                textTransform: "uppercase",
-                marginBottom: "8px",
-              }}
-            >
+            <p className="mb-2 font-lexend text-xs font-normal uppercase text-[#666666]">
               REWARD BALANCE
             </p>
-            <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-              <span
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "48px",
-                  color: "#000000",
-                }}
-              >
+            <div className="flex items-baseline gap-2">
+              <span className="font-lexend text-4xl font-bold text-black lg:text-5xl">
                 1240
               </span>
-              <span
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "24px",
-                  color: "#000000",
-                }}
-              >
+              <span className="font-lexend text-xl font-medium text-black lg:text-2xl">
                 PTS
               </span>
             </div>
-            <p
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 400,
-                fontSize: "12px",
-                color: "#999999",
-                marginTop: "8px",
-              }}
-            >
+            <p className="mt-2 font-lexend text-xs font-normal text-[#999999]">
               PENDING : 140 PTS
             </p>
           </div>
 
           {/* Right - Redeemable Value */}
-          <div style={{ textAlign: "right" }}>
-            <p
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 400,
-                fontSize: "12px",
-                color: "#666666",
-                textTransform: "uppercase",
-                marginBottom: "8px",
-              }}
-            >
+          <div className="text-left sm:text-right">
+            <p className="mb-2 font-lexend text-xs font-normal uppercase text-[#666666]">
               REDEEMABLE VALUE
             </p>
-            <p
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 700,
-                fontSize: "32px",
-                color: "#000000",
-              }}
-            >
+            <p className="font-lexend text-2xl font-bold text-black lg:text-[32px]">
               ₹200
             </p>
           </div>
@@ -757,154 +334,46 @@ const RewardsContent: React.FC = () => {
       </div>
 
       {/* Statistics Section */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "24px",
-          marginBottom: "48px",
-        }}
-      >
+      <div className="mb-10 grid grid-cols-2 gap-4 lg:mb-12 lg:grid-cols-4 lg:gap-6">
         {/* Total Orders */}
-        <div
-          style={{
-            border: "1px solid #E5E5E5",
-            borderRadius: "8px",
-            padding: "24px",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 700,
-              fontSize: "32px",
-              color: "#000000",
-              marginBottom: "8px",
-            }}
-          >
+        <div className="rounded-lg border border-[#E5E5E5] p-4 text-center lg:p-6">
+          <p className="mb-2 font-lexend text-2xl font-bold text-black lg:text-[32px]">
             24
           </p>
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "10px",
-              color: "#999999",
-              textTransform: "uppercase",
-            }}
-          >
+          <p className="font-lexend text-[10px] font-normal uppercase text-[#999999]">
             TOTAL ORDERS
           </p>
         </div>
 
         {/* Total Saved */}
-        <div
-          style={{
-            border: "1px solid #E5E5E5",
-            borderRadius: "8px",
-            padding: "24px",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 700,
-              fontSize: "32px",
-              color: "#000000",
-              marginBottom: "8px",
-            }}
-          >
+        <div className="rounded-lg border border-[#E5E5E5] p-4 text-center lg:p-6">
+          <p className="mb-2 font-lexend text-2xl font-bold text-black lg:text-[32px]">
             ₹4,000
           </p>
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "10px",
-              color: "#999999",
-              textTransform: "uppercase",
-            }}
-          >
+          <p className="font-lexend text-[10px] font-normal uppercase text-[#999999]">
             TOTAL SAVED
           </p>
         </div>
 
         {/* Lifetime Points */}
-        <div
-          style={{
-            border: "1px solid #E5E5E5",
-            borderRadius: "8px",
-            padding: "24px",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 700,
-              fontSize: "32px",
-              color: "#000000",
-              marginBottom: "8px",
-            }}
-          >
+        <div className="rounded-lg border border-[#E5E5E5] p-4 text-center lg:p-6">
+          <p className="mb-2 font-lexend text-2xl font-bold text-black lg:text-[32px]">
             3,200
           </p>
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "10px",
-              color: "#999999",
-              textTransform: "uppercase",
-            }}
-          >
+          <p className="font-lexend text-[10px] font-normal uppercase text-[#999999]">
             LIFETIME POINTS
           </p>
         </div>
 
         {/* Frequency */}
-        <div
-          style={{
-            border: "1px solid #E5E5E5",
-            borderRadius: "8px",
-            padding: "24px",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 700,
-              fontSize: "32px",
-              color: "#000000",
-              marginBottom: "8px",
-            }}
-          >
+        <div className="rounded-lg border border-[#E5E5E5] p-4 text-center lg:p-6">
+          <p className="mb-2 font-lexend text-2xl font-bold text-black lg:text-[32px]">
             24
           </p>
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "10px",
-              color: "#999999",
-              textTransform: "uppercase",
-            }}
-          >
+          <p className="font-lexend text-[10px] font-normal uppercase text-[#999999]">
             DAYS
           </p>
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "8px",
-              color: "#CCCCCC",
-              textTransform: "uppercase",
-              marginTop: "4px",
-            }}
-          >
+          <p className="mt-1 font-lexend text-[8px] font-normal uppercase text-[#CCCCCC]">
             FREQUENCY
           </p>
         </div>
@@ -912,47 +381,24 @@ const RewardsContent: React.FC = () => {
 
       {/* Coupons Section */}
       <div>
-        <h2
-          style={{
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 600,
-            fontSize: "14px",
-            color: "#000000",
-            textTransform: "uppercase",
-            marginBottom: "16px",
-            paddingBottom: "16px",
-            borderBottom: "1px solid #000000",
-          }}
-        >
+        <h2 className="mb-4 border-b border-black pb-4 font-lexend text-sm font-semibold uppercase text-black">
           COUPONS
         </h2>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div className="flex flex-col gap-4">
           {coupons.map((coupon) => (
             <div
               key={coupon.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "20px 24px",
-                border: "1px solid #E5E5E5",
-                borderRadius: "8px",
-                backgroundColor: coupon.status === "redeemed" ? "#FAFAFA" : "#FFFFFF",
-              }}
+              className={`flex flex-col gap-4 rounded-lg border border-[#E5E5E5] px-4 py-4 sm:flex-row sm:items-center sm:justify-between lg:px-6 lg:py-5 ${
+                coupon.status === "redeemed" ? "bg-[#FAFAFA]" : "bg-white"
+              }`}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div className="flex items-center gap-4">
                 {/* Coupon Icon */}
                 <div
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    backgroundColor: coupon.status === "redeemed" ? "#E5E5E5" : "#F5F5F0",
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    coupon.status === "redeemed" ? "bg-[#E5E5E5]" : "bg-[#F5F5F0]"
+                  }`}
                 >
                   <svg
                     width="20"
@@ -979,26 +425,13 @@ const RewardsContent: React.FC = () => {
                 </div>
                 <div>
                   <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      color: coupon.status === "redeemed" ? "#999999" : "#000000",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
+                    className={`mb-1 font-lexend text-sm font-semibold uppercase ${
+                      coupon.status === "redeemed" ? "text-[#999999]" : "text-black"
+                    }`}
                   >
                     {coupon.title}
                   </p>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "12px",
-                      color: "#999999",
-                      textTransform: "uppercase",
-                    }}
-                  >
+                  <p className="font-lexend text-xs font-normal uppercase text-[#999999]">
                     CODE : {coupon.code}
                   </p>
                 </div>
@@ -1006,35 +439,11 @@ const RewardsContent: React.FC = () => {
 
               {/* Status/Action */}
               {coupon.status === "redeemed" ? (
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "12px",
-                    color: "#999999",
-                    textTransform: "uppercase",
-                    padding: "8px 16px",
-                    backgroundColor: "#E5E5E5",
-                    borderRadius: "4px",
-                  }}
-                >
+                <span className="w-fit rounded bg-[#E5E5E5] px-4 py-2 font-lexend text-xs font-medium uppercase text-[#999999]">
                   REDEEMED
                 </span>
               ) : (
-                <button
-                  style={{
-                    padding: "12px 24px",
-                    backgroundColor: "#000000",
-                    border: "none",
-                    borderRadius: "4px",
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "12px",
-                    color: "#FFFFFF",
-                    textTransform: "uppercase",
-                    cursor: "pointer",
-                  }}
-                >
+                <button className="w-fit cursor-pointer rounded border-none bg-black px-4 py-2.5 font-lexend text-xs font-medium uppercase text-white lg:px-6 lg:py-3">
                   COPY CODE
                 </button>
               )}
@@ -1049,26 +458,10 @@ const RewardsContent: React.FC = () => {
 // Placeholder Content Component for other tabs
 const PlaceholderContent: React.FC<{ title: string }> = ({ title }) => (
   <>
-    <h1
-      style={{
-        fontFamily: "Lexend Exa, sans-serif",
-        fontWeight: 400,
-        fontSize: "36px",
-        color: "#000000",
-        textTransform: "uppercase",
-        marginBottom: "32px",
-      }}
-    >
+    <h1 className="mb-6 font-lexend-exa text-2xl font-normal uppercase text-black lg:mb-8 lg:text-3xl xl:text-4xl">
       {title}
     </h1>
-    <p
-      style={{
-        fontFamily: "Lexend, sans-serif",
-        fontWeight: 400,
-        fontSize: "16px",
-        color: "#666666",
-      }}
-    >
+    <p className="font-lexend text-base font-normal text-[#666666]">
       Content coming soon...
     </p>
   </>
@@ -1076,19 +469,13 @@ const PlaceholderContent: React.FC<{ title: string }> = ({ title }) => (
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, isLoading, logout } = useAuth();
+  const { logout } = useAuth();
+  const { user, isLoading } = useRequireAuth();
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, isLoading, router]);
 
   const handleLogout = () => {
     logout();
-    router.push("/login");
+    router.push("/");
   };
 
   const menuItems: { id: TabType; label: string }[] = [
@@ -1103,25 +490,11 @@ export default function AccountPage() {
   // Show loading state
   if (isLoading) {
     return (
-      <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+      <main className="flex min-h-screen flex-col bg-white">
         <TopUtilityBar />
         <MainHeader />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "16px",
-              color: "#666666",
-            }}
-          >
+        <div className="flex flex-1 items-center justify-center">
+          <p className="font-lexend text-base font-normal text-[#666666]">
             Loading...
           </p>
         </div>
@@ -1136,107 +509,43 @@ export default function AccountPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+    <main className="flex min-h-screen flex-col bg-white">
       {/* Header */}
       <TopUtilityBar />
       <MainHeader />
 
       {/* Account Content */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1512px",
-          margin: "0 auto",
-          paddingLeft: "67px",
-          paddingRight: "67px",
-          paddingTop: "60px",
-          paddingBottom: "100px",
-          minHeight: "600px",
-        }}
-      >
-        <div style={{ display: "flex", gap: "80px" }}>
+      <div className="mx-auto min-h-[600px] w-full max-w-[1920px] px-6 pb-20 pt-12 md:px-8 lg:px-12 lg:pb-24 lg:pt-14 xl:px-16 2xl:px-20">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-12 xl:gap-16 2xl:gap-20">
           {/* Left Sidebar */}
-          <div style={{ width: "220px", flexShrink: 0 }}>
+          <div className="w-full shrink-0 lg:w-[220px] xl:w-[250px]">
             {/* User Info */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "16px",
-                paddingBottom: "24px",
-                borderBottom: "1px solid #E5E5E5",
-                marginBottom: "24px",
-              }}
-            >
+            <div className="mb-6 flex items-center gap-4 border-b border-[#E5E5E5] pb-6">
               {/* Avatar */}
-              <div
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "50%",
-                  backgroundColor: "#4A2B1F",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "18px",
-                    color: "#FCF6EB",
-                    textTransform: "uppercase",
-                  }}
-                >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#4A2B1F]">
+                <span className="font-lexend text-lg font-semibold uppercase text-[#FCF6EB]">
                   {user.name.charAt(0)}
                 </span>
               </div>
               <div>
-                <h3
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "16px",
-                    color: "#000000",
-                    textTransform: "uppercase",
-                    marginBottom: "4px",
-                  }}
-                >
+                <h3 className="mb-1 font-lexend text-base font-semibold uppercase text-black">
                   {user.name}
                 </h3>
-                <p
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "12px",
-                    color: "#999999",
-                  }}
-                >
+                <p className="font-lexend text-xs font-normal text-[#999999]">
                   1240 PTS
                 </p>
               </div>
             </div>
 
             {/* Navigation Menu */}
-            <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <nav className="flex flex-row flex-wrap gap-2 lg:flex-col lg:gap-2">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  style={{
-                    textAlign: "left",
-                    padding: "12px 0",
-                    background: "none",
-                    border: "none",
-                    borderBottom: activeTab === item.id ? "2px solid #000000" : "none",
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: activeTab === item.id ? 600 : 400,
-                    fontSize: "14px",
-                    color: "#000000",
-                    cursor: "pointer",
-                    textTransform: "uppercase",
-                  }}
+                  className={`bg-transparent px-3 py-2 text-left font-lexend text-sm uppercase text-black lg:px-0 lg:py-3 ${
+                    activeTab === item.id ? "border-b-2 border-black font-semibold" : "font-normal"
+                  }`}
                 >
                   {item.label}
                 </button>
@@ -1245,19 +554,7 @@ export default function AccountPage() {
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                style={{
-                  textAlign: "left",
-                  padding: "12px 0",
-                  background: "none",
-                  border: "none",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "14px",
-                  color: "#C9746C",
-                  cursor: "pointer",
-                  textTransform: "uppercase",
-                  marginTop: "16px",
-                }}
+                className="mt-2 bg-transparent px-3 py-2 text-left font-lexend text-sm font-normal uppercase text-[#C9746C] lg:mt-4 lg:px-0 lg:py-3"
               >
                 LOGOUT
               </button>
@@ -1265,7 +562,7 @@ export default function AccountPage() {
           </div>
 
           {/* Right Content */}
-          <div style={{ flex: 1 }}>
+          <div className="flex-1">
             {activeTab === "dashboard" && <DashboardContent userName={user.name} />}
             {activeTab === "orders" && <OrderHistoryContent />}
             {activeTab === "wishlist" && <WishlistContent />}

@@ -2,20 +2,17 @@ import React from "react";
 
 export const HeroSection: React.FC = () => {
   return (
-    <section className="relative w-full overflow-hidden" style={{ height: "982px" }}>
+    <section className="relative h-[600px] w-full overflow-hidden md:h-[750px] lg:h-[850px] xl:h-[900px] 2xl:h-[982px]">
       {/* Background Image */}
       <div
-        className="absolute left-0 w-full bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: "url('/herobanner.png')",
-          width: "100%",
-          height: "1103px",
-          top: "-152px",
         }}
       />
 
       {/* Content Overlay */}
-      <div className="relative z-10 mx-auto flex h-full max-w-[1920px] flex-col items-center justify-center px-4 min-[480px]:px-6 sm:px-10 md:px-12 lg:flex-row lg:items-center lg:justify-end lg:px-20 xl:px-32">
+      <div className="relative z-10 mx-auto flex h-full max-w-[1920px] flex-col items-center justify-center px-8 md:px-12 lg:flex-row lg:items-center lg:justify-end lg:px-16 xl:px-20 2xl:px-24">
         {/* Text Content - Right Side on Desktop, Stacked on Mobile */}
         <div className="flex w-full flex-col items-center text-center lg:items-end lg:text-right">
           {/* Main Heading */}

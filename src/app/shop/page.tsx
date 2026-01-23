@@ -87,39 +87,14 @@ const products: Product[] = [
 // Product Card Component for Shop Page
 const ShopProductCard: React.FC<{ product: Product }> = ({ product }) => {
   return (
-    <Link href={`/product/${product.id}`} className="block">
-      <div
-        style={{
-          width: "679px",
-          height: "628px",
-          backgroundColor: "#F5F5F0",
-          borderRadius: "20px",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+    <Link href={`/product/${product.id}`} className="block w-full">
+      <div className="flex h-[500px] w-full flex-col overflow-hidden rounded-2xl bg-[#F5F5F0] lg:h-[550px] xl:h-[600px] 2xl:h-[628px]">
         {/* Card Header */}
-        <div
-          style={{
-            padding: "20px 24px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "14px",
-              color: "#666666",
-              textTransform: "uppercase",
-            }}
-          >
+        <div className="flex items-center justify-between px-4 py-4 lg:px-6">
+          <p className="font-lexend text-xs font-normal uppercase text-[#666666] lg:text-sm">
             CATEGORY NAME
           </p>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div className="flex items-center gap-1.5">
             <svg
               width="16"
               height="16"
@@ -129,106 +104,32 @@ const ShopProductCard: React.FC<{ product: Product }> = ({ product }) => {
             >
               <path d="M6 0L7.76393 3.52786L11.7063 4.1459L8.85317 6.92214L9.52786 10.8541L6 9L2.47214 10.8541L3.14683 6.92214L0.293661 4.1459L4.23607 3.52786L6 0Z" />
             </svg>
-            <span
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 500,
-                fontSize: "16px",
-                color: "#000000",
-              }}
-            >
+            <span className="font-lexend text-sm font-medium text-black lg:text-base">
               {product.rating}
             </span>
           </div>
         </div>
 
         {/* Product Image */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#F5F5F0",
-          }}
-        >
-          <div
-            style={{
-              width: "180px",
-              height: "280px",
-              backgroundColor: "#E5E5E5",
-              borderRadius: "8px",
-            }}
-          />
+        <div className="flex flex-1 items-center justify-center bg-[#F5F5F0]">
+          <div className="h-[200px] w-[140px] rounded-lg bg-[#E5E5E5] lg:h-[240px] lg:w-[160px] xl:h-[280px] xl:w-[180px]" />
         </div>
 
         {/* Product Info */}
-        <div
-          style={{
-            padding: "24px",
-            backgroundColor: "#FFFFFF",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: "12px",
-            }}
-          >
-            <h3
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 700,
-                fontSize: "18px",
-                color: "#000000",
-                textTransform: "uppercase",
-                maxWidth: "400px",
-                lineHeight: "1.3",
-              }}
-            >
+        <div className="bg-white p-4 lg:p-6">
+          <div className="mb-2 flex items-start justify-between lg:mb-3">
+            <h3 className="max-w-[70%] font-lexend text-sm font-bold uppercase leading-tight text-black lg:text-base xl:text-lg">
               {product.name}
             </h3>
-            <span
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 600,
-                fontSize: "20px",
-                color: "#000000",
-              }}
-            >
+            <span className="font-lexend text-base font-semibold text-black lg:text-lg xl:text-xl">
               ₹{product.price}
             </span>
           </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 400,
-                fontSize: "14px",
-                color: "#666666",
-              }}
-            >
-              "{product.description}"
+          <div className="flex items-center justify-between">
+            <p className="font-lexend text-xs font-normal text-[#666666] lg:text-sm">
+              &quot;{product.description}&quot;
             </p>
-            <span
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 500,
-                fontSize: "14px",
-                color: "#000000",
-                textTransform: "uppercase",
-                textDecoration: "underline",
-                cursor: "pointer",
-              }}
-            >
+            <span className="font-lexend text-xs font-medium uppercase text-black underline lg:text-sm">
               VIEW CLINICALS
             </span>
           </div>
@@ -289,60 +190,28 @@ export default function ShopPage() {
       : products.filter((p) => p.category === activeCategory);
 
   return (
-    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+    <main className="flex min-h-screen flex-col bg-white">
       {/* Header */}
       <TopUtilityBar />
       <MainHeader />
 
-      {/* Hero Banner - 667px total height including header */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1512px",
-          height: "507px",
-          backgroundColor: "#C5C5B8",
-          margin: "0 auto",
-        }}
-      />
+      {/* Hero Banner */}
+      <div className="mx-auto h-[300px] w-full max-w-[1920px] bg-[#C5C5B8] md:h-[400px] lg:h-[450px] xl:h-[507px]" />
 
       {/* Category Navigation & Filters */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1512px",
-          margin: "0 auto",
-          paddingLeft: "67px",
-          paddingRight: "67px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingTop: "24px",
-            paddingBottom: "24px",
-            borderBottom: "1px solid #E5E5E5",
-          }}
-        >
+      <div className="mx-auto w-full max-w-[1920px] px-8 md:px-12 lg:px-16 xl:px-20 2xl:px-24">
+        <div className="flex flex-col gap-4 border-b border-[#E5E5E5] py-4 lg:flex-row lg:items-center lg:justify-between lg:py-6">
           {/* Category Tabs */}
-          <div style={{ display: "flex", gap: "32px" }}>
+          <div className="flex flex-wrap gap-4 lg:gap-6 xl:gap-8">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => handleCategoryChange(category.id)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: activeCategory === category.id ? 600 : 400,
-                  fontSize: "12px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                  paddingBottom: "8px",
-                  borderBottom: activeCategory === category.id ? "2px solid #000000" : "2px solid transparent",
-                }}
+                className={`border-b-2 pb-2 font-lexend text-xs uppercase lg:text-sm ${
+                  activeCategory === category.id
+                    ? "border-black font-semibold"
+                    : "border-transparent font-normal"
+                }`}
               >
                 {category.label}
               </button>
@@ -350,7 +219,7 @@ export default function ShopPage() {
           </div>
 
           {/* Sort & Filter */}
-          <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+          <div className="flex items-center gap-4 lg:gap-6">
             {/* Sort Dropdown */}
             <div style={{ position: "relative" }}>
               <button
@@ -481,16 +350,7 @@ export default function ShopPage() {
         </div>
 
         {/* Products Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 679px)",
-            gap: "20px",
-            paddingTop: "32px",
-            paddingBottom: "100px",
-            justifyContent: "center",
-          }}
-        >
+        <div className="grid grid-cols-1 gap-5 pb-16 pt-8 md:grid-cols-2 lg:gap-6 lg:pb-20 xl:gap-8 xl:pb-24">
           {filteredProducts.map((product) => (
             <ShopProductCard key={product.id} product={product} />
           ))}

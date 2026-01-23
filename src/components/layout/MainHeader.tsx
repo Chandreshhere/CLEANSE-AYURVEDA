@@ -24,18 +24,10 @@ export const MainHeader: React.FC = () => {
 
   return (
     <header className="w-full" style={{ backgroundColor: "#ECCFA0" }}>
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1512px",
-          margin: "0 auto",
-          paddingLeft: "67px",
-          paddingRight: "67px",
-        }}
-      >
-        <div className="flex items-center justify-between" style={{ height: "120px" }}>
+      <div className="mx-auto w-full max-w-[1920px] px-8 md:px-12 lg:px-16 xl:px-20 2xl:px-24">
+        <div className="flex h-[100px] items-center justify-between lg:h-[120px]">
           {/* Left Navigation */}
-          <nav className="hidden items-center lg:flex" style={{ gap: "48px", flex: 1 }}>
+          <nav className="hidden items-center gap-8 lg:flex xl:gap-12 2xl:gap-14" style={{ flex: 1 }}>
             <a
               href="/shop"
               style={{
@@ -151,7 +143,7 @@ export const MainHeader: React.FC = () => {
           </div>
 
           {/* Right Navigation Icons */}
-          <div className="flex items-center" style={{ gap: "70px", flex: 1, justifyContent: "flex-end" }}>
+          <div className="flex flex-1 items-center justify-end gap-6 lg:gap-10 xl:gap-14 2xl:gap-16">
             <Link
               href="/account"
               className="hidden text-dark-brown lg:block"

@@ -5,37 +5,11 @@ interface TrustFeatureProps {
 }
 
 const TrustFeature: React.FC<TrustFeatureProps> = ({ label }) => (
-  <div
-    className="flex flex-col items-center"
-    style={{
-      width: "253px",
-      height: "225px",
-      gap: "36px",
-    }}
-  >
+  <div className="flex flex-col items-center gap-6 lg:gap-8">
     {/* Icon Placeholder */}
-    <div
-      className="bg-light-grey"
-      style={{
-        width: "177px",
-        height: "140px",
-        borderRadius: "22px",
-      }}
-    />
+    <div className="h-[120px] w-[150px] rounded-2xl bg-light-grey lg:h-[140px] lg:w-[177px]" />
     {/* Label */}
-    <span
-      className="text-black"
-      style={{
-        width: "213px",
-        height: "50px",
-        fontFamily: "Lexend, sans-serif",
-        fontWeight: 700,
-        fontSize: "24px",
-        lineHeight: "100%",
-        letterSpacing: "0",
-        textAlign: "center",
-      }}
-    >
+    <span className="text-center font-lexend text-lg font-bold text-black lg:text-xl xl:text-2xl">
       {label}
     </span>
   </div>
@@ -50,64 +24,24 @@ export const TrustSection: React.FC = () => {
 
   return (
     <section className="w-full bg-off-white">
-      <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
+      <div className="mx-auto max-w-[1920px] px-8 py-16 md:px-12 lg:px-16 lg:py-20 xl:px-20 xl:py-24 2xl:px-24">
         {/* Top Row - Quote + Trust Badges */}
-        <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:justify-center lg:gap-16">
+        <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:justify-center lg:gap-16 xl:gap-20">
           {/* Left - Quote Card */}
-          <div
-            className="relative flex flex-col items-center justify-center bg-muted-beige"
-            style={{
-              width: "399px",
-              height: "261px",
-              borderRadius: "22px",
-            }}
-          >
+          <div className="relative flex h-[220px] w-full max-w-[360px] flex-col items-center justify-center rounded-2xl bg-muted-beige px-6 lg:h-[261px] lg:max-w-[399px]">
             {/* Quote Icon */}
-            <div
-              className="absolute text-black"
-              style={{
-                width: "58px",
-                height: "90px",
-                top: "50px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                fontFamily: "Lexend, sans-serif",
-                fontSize: "128px",
-                fontWeight: 400,
-                lineHeight: "50%",
-                letterSpacing: "0",
-                textAlign: "center",
-              }}
-            >
+            <div className="absolute left-1/2 top-8 -translate-x-1/2 font-lexend text-7xl font-normal text-black lg:top-12 lg:text-9xl">
               &ldquo;
             </div>
             {/* Quote Text */}
-            <p
-              className="text-center text-black"
-              style={{
-                width: "352px",
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 400,
-                fontSize: "24px",
-                lineHeight: "100%",
-                letterSpacing: "0",
-                marginTop: "60px",
-              }}
-            >
+            <p className="mt-12 max-w-[320px] text-center font-lexend text-lg font-normal text-black lg:mt-14 lg:max-w-[352px] lg:text-xl xl:text-2xl">
               We aren&apos;t merely selling bottles; we are delivering a
               clinically-backed path to purity.&rdquo;
             </p>
           </div>
 
           {/* Right - Trust Features */}
-          <div
-            className="flex items-center justify-center"
-            style={{
-              width: "879px",
-              height: "225px",
-              gap: "60px",
-            }}
-          >
+          <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 xl:gap-16">
             {trustFeatures.map((feature) => (
               <TrustFeature key={feature} label={feature} />
             ))}
@@ -116,14 +50,7 @@ export const TrustSection: React.FC = () => {
 
         {/* Divider Line */}
         <div className="mt-16 flex justify-center lg:mt-20">
-          <div
-            className="border-t border-black"
-            style={{
-              width: "1372px",
-              borderWidth: "1px",
-              marginLeft: "-40px",
-            }}
-          />
+          <div className="w-full max-w-[1372px] border-t border-black" />
         </div>
       </div>
     </section>

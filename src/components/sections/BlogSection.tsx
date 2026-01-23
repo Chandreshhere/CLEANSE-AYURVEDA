@@ -13,112 +13,39 @@ const BlogCard: React.FC<BlogCardProps> = ({
   title,
   description,
 }) => (
-  <div>
+  <div className="w-full max-w-[600px] lg:max-w-[650px] xl:max-w-[679px]">
     {/* Image Container */}
-    <div
-      style={{
-        width: "679px",
-        height: "469px",
-        overflow: "hidden",
-      }}
-    >
+    <div className="aspect-[679/469] w-full overflow-hidden">
       <img
         src={image}
         alt={title}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
+        className="h-full w-full object-cover"
       />
     </div>
 
     {/* Content */}
-    <div style={{ marginTop: "16px" }}>
+    <div className="mt-4">
       {/* Category Tag */}
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "96px",
-          height: "27px",
-          paddingTop: "4px",
-          paddingRight: "14px",
-          paddingBottom: "4px",
-          paddingLeft: "14px",
-          gap: "10px",
-          backgroundColor: "#C38C65",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 500,
-            fontSize: "16px",
-            lineHeight: "100%",
-            letterSpacing: "0",
-            textTransform: "uppercase",
-            color: "#FFFFFF",
-          }}
-        >
+      <div className="inline-flex items-center justify-center bg-[#C38C65] px-3.5 py-1">
+        <span className="font-inter text-sm font-medium uppercase text-white lg:text-base">
           {category}
         </span>
       </div>
 
       {/* Title */}
-      <h3
-        className="text-black"
-        style={{
-          width: "666px",
-          height: "71px",
-          fontFamily: "Lexend, sans-serif",
-          fontWeight: 400,
-          fontSize: "26px",
-          lineHeight: "100%",
-          letterSpacing: "0",
-          marginTop: "12px",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+      <h3 className="mt-3 font-lexend text-xl font-normal text-black lg:text-2xl xl:text-[26px]">
         {title}
       </h3>
 
       {/* Description */}
-      <p
-        className="text-black"
-        style={{
-          width: "563px",
-          height: "75px",
-          fontFamily: "Lexend, sans-serif",
-          fontWeight: 400,
-          fontSize: "20px",
-          lineHeight: "100%",
-          letterSpacing: "0",
-          marginTop: "8px",
-        }}
-      >
+      <p className="mt-2 font-lexend text-base font-normal text-black lg:text-lg xl:text-xl" style={{ lineHeight: "130%" }}>
         {description}
       </p>
 
       {/* Read More Link */}
       <a
         href="#"
-        className="text-black"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "8px",
-          width: "213px",
-          height: "45px",
-          fontFamily: "Lexend, sans-serif",
-          fontWeight: 600,
-          fontSize: "14px",
-          textTransform: "uppercase",
-          textDecoration: "none",
-          marginTop: "16px",
-        }}
+        className="mt-4 inline-flex items-center gap-2 font-lexend text-sm font-semibold uppercase text-black"
       >
         READ MORE
         <svg
@@ -161,48 +88,19 @@ export const BlogSection: React.FC = () => {
 
   return (
     <section className="w-full bg-off-white">
-      <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
+      <div className="mx-auto max-w-[1920px] px-8 py-16 md:px-12 lg:px-16 lg:py-20 xl:px-20 xl:py-24 2xl:px-24">
         {/* Section Header */}
-        <div className="mb-12 text-center">
-          <p
-            style={{
-              width: "236px",
-              height: "50px",
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "20px",
-              lineHeight: "100%",
-              letterSpacing: "0",
-              textAlign: "center",
-              opacity: 0.6,
-              margin: "0 auto",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+        <div className="mb-10 text-center lg:mb-12">
+          <p className="mx-auto font-lexend text-lg font-normal text-black/60 lg:text-xl">
             The Journal
           </p>
-          <h2
-            className="text-black"
-            style={{
-              width: "441px",
-              height: "53px",
-              fontFamily: "Lexend Exa, sans-serif",
-              fontWeight: 400,
-              fontSize: "42px",
-              lineHeight: "100%",
-              letterSpacing: "0",
-              textTransform: "uppercase",
-              margin: "0 auto",
-            }}
-          >
+          <h2 className="mx-auto mt-2 font-lexend-exa text-2xl font-normal uppercase text-black md:text-3xl lg:text-4xl xl:text-[42px]">
             WISDOM SHARED
           </h2>
         </div>
 
         {/* Blog Cards */}
-        <div className="flex justify-center gap-6">
+        <div className="grid grid-cols-1 justify-items-center gap-8 md:grid-cols-2 lg:gap-10 xl:gap-12">
           {blogs.map((blog, index) => (
             <BlogCard
               key={index}
@@ -215,21 +113,10 @@ export const BlogSection: React.FC = () => {
         </div>
 
         {/* View All Blogs Link */}
-        <div className="mt-16 text-center">
+        <div className="mt-12 text-center lg:mt-16">
           <a
             href="#"
-            className="text-black"
-            style={{
-              display: "inline-block",
-              width: "289px",
-              height: "35px",
-              fontFamily: "Lexend Exa, sans-serif",
-              fontWeight: 400,
-              fontSize: "18px",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              textDecoration: "none",
-            }}
+            className="inline-block font-lexend-exa text-base font-normal uppercase tracking-wider text-black lg:text-lg"
           >
             VIEW ALL BLOGS
           </a>

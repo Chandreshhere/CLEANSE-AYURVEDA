@@ -10,69 +10,25 @@ interface TestimonialCardProps {
 
 const TestimonialCard: React.FC<TestimonialCardProps> = ({ name, review, bgColor }) => (
   <div
-    style={{
-      width: "440px",
-      height: "430px",
-      backgroundColor: bgColor,
-      borderRadius: "20px",
-      padding: "36px",
-      flexShrink: 0,
-    }}
+    className="h-[380px] w-[340px] flex-shrink-0 rounded-2xl p-6 lg:h-[400px] lg:w-[380px] lg:p-8 xl:h-[430px] xl:w-[440px] xl:p-9"
+    style={{ backgroundColor: bgColor }}
   >
     {/* Avatar and Name Row */}
-    <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "40px" }}>
+    <div className="mb-8 flex items-center gap-4 lg:mb-10 lg:gap-5">
       {/* Avatar Circle */}
-      <div
-        style={{
-          width: "89px",
-          height: "89px",
-          borderRadius: "50%",
-          backgroundColor: "#FFFFFF",
-        }}
-      />
+      <div className="h-16 w-16 flex-shrink-0 rounded-full bg-white lg:h-20 lg:w-20 xl:h-[89px] xl:w-[89px]" />
       <div>
         {/* Name */}
-        <p
-          style={{
-            width: "192px",
-            height: "30px",
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 700,
-            fontSize: "24px",
-            lineHeight: "100%",
-            letterSpacing: "0",
-            color: "#000000",
-            marginBottom: "8px",
-            whiteSpace: "nowrap",
-          }}
-        >
+        <p className="mb-2 whitespace-nowrap font-lexend text-lg font-bold text-black lg:text-xl xl:text-2xl">
           {name}
         </p>
         {/* Rectangle below name */}
-        <div
-          style={{
-            width: "143px",
-            height: "18px",
-            backgroundColor: "#FFFFFF",
-          }}
-        />
+        <div className="h-4 w-28 bg-white lg:w-36" />
       </div>
     </div>
 
     {/* Review Text */}
-    <p
-      style={{
-        width: "352px",
-        height: "213px",
-        fontFamily: "Lexend, sans-serif",
-        fontWeight: 400,
-        fontSize: "18px",
-        lineHeight: "100%",
-        letterSpacing: "0",
-        color: "#000000",
-        opacity: 0.8,
-      }}
-    >
+    <p className="font-lexend text-sm font-normal text-black/80 lg:text-base xl:text-lg" style={{ lineHeight: "140%" }}>
       {review}
     </p>
   </div>
@@ -84,21 +40,13 @@ const ArrowButton: React.FC<{ direction: "left" | "right"; onClick: () => void }
 }) => (
   <button
     onClick={onClick}
-    style={{
-      width: "64px",
-      height: "64px",
-      borderRadius: "50%",
-      backgroundColor: direction === "left" ? "#4A2B1F" : "#FFFFFF",
-      border: direction === "right" ? "2px solid #4A2B1F" : "none",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-    }}
+    className={`flex h-12 w-12 items-center justify-center rounded-full lg:h-14 lg:w-14 xl:h-16 xl:w-16 ${
+      direction === "left" ? "bg-dark-brown" : "border-2 border-dark-brown bg-white"
+    }`}
   >
     <svg
-      width="32"
-      height="12"
+      width="24"
+      height="10"
       viewBox="0 0 46 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -157,66 +105,32 @@ export const TestimonialsSection: React.FC = () => {
   };
 
   return (
-    <section className="w-full bg-off-white" style={{ overflow: "hidden" }}>
-      <div
-        style={{
-          paddingTop: "64px",
-          paddingLeft: "67px",
-          paddingRight: "67px",
-          paddingBottom: "0",
-        }}
-      >
-        {/* Testimonials Container - 1445x630 */}
-        <div
-          style={{
-            width: "1445px",
-            height: "630px",
-            opacity: 1,
-          }}
-        >
+    <section className="w-full overflow-hidden bg-off-white">
+      <div className="px-8 pb-0 pt-12 md:px-12 lg:px-16 lg:pt-16 xl:px-20 2xl:px-24">
+        {/* Testimonials Container */}
+        <div className="mx-auto max-w-[1920px]">
           {/* Header Row */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: "60px",
-            }}
-          >
+          <div className="mb-10 flex flex-col gap-6 lg:mb-14 lg:flex-row lg:items-start lg:justify-between xl:mb-16">
             {/* Title */}
-            <h2
-              style={{
-                width: "678px",
-                height: "106px",
-                fontFamily: "Lexend Exa, sans-serif",
-                fontWeight: 400,
-                fontSize: "42px",
-                lineHeight: "100%",
-                letterSpacing: "0",
-                textTransform: "uppercase",
-                color: "#000000",
-              }}
-            >
+            <h2 className="font-lexend-exa text-2xl font-normal uppercase text-black md:text-3xl lg:text-4xl xl:text-[42px]" style={{ lineHeight: "120%" }}>
               LISTEN TO WHAT OUR
               <br />
               CLIENTS SAY ABOUT US?
             </h2>
 
             {/* Arrow Buttons */}
-            <div style={{ display: "flex", gap: "16px", marginRight: "150px", marginTop: "20px" }}>
+            <div className="flex gap-4">
               <ArrowButton direction="left" onClick={handlePrev} />
               <ArrowButton direction="right" onClick={handleNext} />
             </div>
           </div>
 
           {/* Testimonials Carousel */}
-          <div style={{ overflow: "visible" }}>
+          <div className="overflow-visible">
             <div
+              className="flex gap-4 transition-transform duration-300 ease-in-out lg:gap-6"
               style={{
-                display: "flex",
-                gap: "24px",
-                transform: `translateX(-${currentIndex * (440 + 24)}px)`,
-                transition: "transform 0.3s ease-in-out",
+                transform: `translateX(-${currentIndex * (340 + 16)}px)`,
               }}
             >
               {testimonials.map((testimonial, index) => (
@@ -232,110 +146,31 @@ export const TestimonialsSection: React.FC = () => {
         </div>
 
         {/* Ancient Secrets Banner */}
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "1378px",
-            height: "463px",
-            borderRadius: "20px",
-            background: "linear-gradient(90deg, #6F4B46 0%, #442824 100%)",
-            position: "relative",
-            overflow: "visible",
-            marginTop: "150px",
-          }}
-        >
+        <div className="relative mt-24 h-[350px] w-full max-w-[1378px] overflow-visible rounded-2xl lg:mt-32 lg:h-[400px] xl:mt-36 xl:h-[463px]" style={{ background: "linear-gradient(90deg, #6F4B46 0%, #442824 100%)" }}>
           {/* Product Image */}
           <img
             src="/product.png"
             alt="Cleanse Ayurveda Products"
-            style={{
-              width: "1200px",
-              height: "1000px",
-              objectFit: "contain",
-              position: "absolute",
-              left: "-200px",
-              bottom: "-240px",
-              transform: "rotate(5deg)",
-            }}
+            className="absolute -bottom-32 -left-20 h-[600px] w-auto rotate-[5deg] object-contain lg:-bottom-48 lg:-left-40 lg:h-[800px] xl:-bottom-60 xl:h-[1000px]"
           />
 
           {/* Text Content */}
-          <div
-            style={{
-              position: "absolute",
-              right: "100px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              textAlign: "right",
-            }}
-          >
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 text-right lg:right-16 xl:right-24">
             {/* Ancient Secrets Title */}
-            <h3
-              style={{
-                width: "549px",
-                height: "134px",
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 600,
-                fontSize: "48px",
-                lineHeight: "100%",
-                letterSpacing: "0",
-                textAlign: "right",
-                color: "#FFFFFF",
-                marginBottom: "20px",
-              }}
-            >
+            <h3 className="mb-4 font-lexend text-2xl font-semibold text-white lg:mb-5 lg:text-4xl xl:text-5xl" style={{ lineHeight: "110%" }}>
               Ancient Secrets,
               <br />
               Modern Radiance
             </h3>
 
             {/* Infused Text */}
-            <p
-              style={{
-                width: "459px",
-                height: "30px",
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 400,
-                fontSize: "24px",
-                lineHeight: "100%",
-                letterSpacing: "0",
-                textAlign: "right",
-                color: "#FFFFFF",
-                marginBottom: "40px",
-                marginLeft: "auto",
-              }}
-            >
+            <p className="mb-6 ml-auto font-lexend text-base font-normal text-white lg:mb-8 lg:text-xl xl:mb-10 xl:text-2xl">
               Infused with Turmeric and Rose Petals.
             </p>
 
             {/* Shop Now Button */}
-            <button
-              style={{
-                width: "182px",
-                height: "50px",
-                borderRadius: "35px",
-                backgroundColor: "#FFFFFF",
-                border: "none",
-                paddingTop: "10px",
-                paddingRight: "23px",
-                paddingBottom: "10px",
-                paddingLeft: "23px",
-                cursor: "pointer",
-                marginLeft: "auto",
-                display: "block",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "right",
-                  color: "#000000",
-                }}
-              >
+            <button className="ml-auto block rounded-full bg-white px-6 py-2.5 lg:px-8 lg:py-3">
+              <span className="font-lexend text-lg font-normal text-black lg:text-xl xl:text-2xl">
                 SHOP NOW
               </span>
             </button>
@@ -343,149 +178,37 @@ export const TestimonialsSection: React.FC = () => {
         </div>
 
         {/* Features/Badges Section */}
-        <div
-          style={{
-            width: "1512px",
-            height: "460px",
-            backgroundColor: "#C4C4C4",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginTop: "200px",
-            marginLeft: "-67px",
-          }}
-        >
+        <div className="-mx-8 mt-32 flex h-[350px] items-center justify-center bg-[#C4C4C4] md:-mx-12 lg:-mx-16 lg:mt-48 lg:h-[400px] xl:-mx-20 xl:h-[460px] 2xl:-mx-24">
           {/* Badges Container */}
-          <div
-            style={{
-              width: "1265px",
-              height: "298px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "137px",
-            }}
-          >
+          <div className="grid grid-cols-2 gap-8 px-8 lg:flex lg:gap-16 xl:gap-24 2xl:gap-32">
             {/* Badge 1 - Express Shipping */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: "213px",
-                  height: "213px",
-                  borderRadius: "22px",
-                  backgroundColor: "#D9D9D9",
-                }}
-              />
-              <p
-                style={{
-                  width: "213px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "center",
-                  color: "#000000",
-                  marginTop: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+            <div className="flex flex-col items-center">
+              <div className="h-32 w-32 rounded-2xl bg-[#D9D9D9] lg:h-40 lg:w-40 xl:h-[213px] xl:w-[213px]" />
+              <p className="mt-4 text-center font-lexend text-base font-bold text-black lg:text-xl xl:text-2xl">
                 Express Shipping
               </p>
             </div>
 
             {/* Badge 2 - Cruelty Free */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: "213px",
-                  height: "213px",
-                  borderRadius: "22px",
-                  backgroundColor: "#D9D9D9",
-                }}
-              />
-              <p
-                style={{
-                  width: "213px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "center",
-                  color: "#000000",
-                  marginTop: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+            <div className="flex flex-col items-center">
+              <div className="h-32 w-32 rounded-2xl bg-[#D9D9D9] lg:h-40 lg:w-40 xl:h-[213px] xl:w-[213px]" />
+              <p className="mt-4 text-center font-lexend text-base font-bold text-black lg:text-xl xl:text-2xl">
                 Cruelty Free
               </p>
             </div>
 
             {/* Badge 3 - 100% Ayurvedic */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: "213px",
-                  height: "213px",
-                  borderRadius: "22px",
-                  backgroundColor: "#D9D9D9",
-                }}
-              />
-              <p
-                style={{
-                  width: "213px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "center",
-                  color: "#000000",
-                  marginTop: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+            <div className="flex flex-col items-center">
+              <div className="h-32 w-32 rounded-2xl bg-[#D9D9D9] lg:h-40 lg:w-40 xl:h-[213px] xl:w-[213px]" />
+              <p className="mt-4 text-center font-lexend text-base font-bold text-black lg:text-xl xl:text-2xl">
                 100% Ayurvedic
               </p>
             </div>
 
             {/* Badge 4 - Made In India */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: "213px",
-                  height: "213px",
-                  borderRadius: "22px",
-                  backgroundColor: "#D9D9D9",
-                }}
-              />
-              <p
-                style={{
-                  width: "213px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "center",
-                  color: "#000000",
-                  marginTop: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+            <div className="flex flex-col items-center">
+              <div className="h-32 w-32 rounded-2xl bg-[#D9D9D9] lg:h-40 lg:w-40 xl:h-[213px] xl:w-[213px]" />
+              <p className="mt-4 text-center font-lexend text-base font-bold text-black lg:text-xl xl:text-2xl">
                 Made In India
               </p>
             </div>

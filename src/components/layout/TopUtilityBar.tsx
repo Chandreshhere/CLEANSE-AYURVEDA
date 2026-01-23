@@ -6,15 +6,8 @@ import { ChevronDownIcon } from "@/components/ui";
 export const TopUtilityBar: React.FC = () => {
   return (
     <div className="bg-dark-brown w-full">
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1512px",
-          margin: "0 auto",
-          paddingLeft: "67px",
-          paddingRight: "67px",
-        }}
-      >
+      <div className="mx-auto w-full max-w-[1920px] px-8 md:px-12 lg:px-16 xl:px-20 2xl:px-24">
+
         <div className="flex h-10 items-center justify-between">
           {/* Left Section - Language & Currency */}
           <div className="hidden items-center md:flex" style={{ gap: "40px", flex: 1 }}>

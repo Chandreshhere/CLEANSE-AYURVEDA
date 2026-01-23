@@ -41,266 +41,82 @@ export default function CartPage() {
       <MainHeader />
 
       {/* Cart Content */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1512px",
-          margin: "0 auto",
-          paddingLeft: "67px",
-          paddingRight: "67px",
-          paddingTop: "60px",
-          paddingBottom: "100px",
-        }}
-      >
+      <div className="mx-auto w-full max-w-[1920px] px-6 pb-20 pt-12 md:px-8 lg:px-12 lg:pb-24 lg:pt-14 xl:px-16 2xl:px-20">
         {/* Page Title */}
-        <h1
-          style={{
-            fontFamily: "Lexend Exa, sans-serif",
-            fontWeight: 400,
-            fontSize: "42px",
-            color: "#000000",
-            textAlign: "center",
-            textTransform: "uppercase",
-            marginBottom: "40px",
-          }}
-        >
+        <h1 className="mb-8 text-center font-lexend-exa text-3xl font-normal uppercase text-black lg:mb-10 lg:text-4xl xl:text-[42px]">
           YOUR CART
         </h1>
 
         {/* Gift Progress Bar */}
-        <div style={{ marginBottom: "24px" }}>
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 500,
-              fontSize: "14px",
-              color: "#000000",
-              textAlign: "center",
-              textTransform: "uppercase",
-              marginBottom: "12px",
-            }}
-          >
+        <div className="mb-6">
+          <p className="mb-3 text-center font-lexend text-sm font-medium uppercase text-black">
             SHOP FOR ₹220 MORE FOR A GIFT
           </p>
-          <div
-            style={{
-              width: "100%",
-              maxWidth: "600px",
-              height: "8px",
-              backgroundColor: "#E5E5E5",
-              borderRadius: "4px",
-              margin: "0 auto",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                width: "65%",
-                height: "100%",
-                backgroundColor: "#4A2B1F",
-                borderRadius: "4px",
-              }}
-            />
+          <div className="mx-auto h-2 w-full max-w-[600px] overflow-hidden rounded bg-[#E5E5E5]">
+            <div className="h-full w-[65%] rounded bg-[#4A2B1F]" />
           </div>
         </div>
 
         {/* Timer Banner */}
-        <div
-          style={{
-            backgroundColor: "#FFE8E8",
-            padding: "16px 32px",
-            borderRadius: "8px",
-            border: "1px solid #FF6B6B",
-            marginBottom: "40px",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 500,
-              fontSize: "14px",
-              color: "#FF6B6B",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
+        <div className="mb-8 rounded-lg border border-[#FF6B6B] bg-[#FFE8E8] px-4 py-4 text-center lg:mb-10 lg:px-8">
+          <p className="font-lexend text-xs font-medium uppercase tracking-wide text-[#FF6B6B] lg:text-sm">
             ITEMS RESERVED FOR {formatTime()}. COMPLETE CHECKOUT TO SECURE THIS BATCH
           </p>
         </div>
 
         {/* Main Content Grid */}
-        <div style={{ display: "flex", gap: "40px" }}>
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-10 xl:gap-12">
           {/* Left Side - Cart Items */}
-          <div style={{ flex: 1 }}>
-            {/* Table Header */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1fr 1fr 1fr",
-                paddingBottom: "16px",
-                borderBottom: "1px solid #E5E5E5",
-                marginBottom: "24px",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                }}
-              >
+          <div className="flex-1">
+            {/* Table Header - Hidden on mobile */}
+            <div className="mb-6 hidden border-b border-[#E5E5E5] pb-4 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr]">
+              <span className="font-lexend text-xs font-medium uppercase text-black">
                 PRODUCT
               </span>
-              <span
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  textAlign: "center",
-                }}
-              >
+              <span className="text-center font-lexend text-xs font-medium uppercase text-black">
                 QUANTITY
               </span>
-              <span
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  textAlign: "center",
-                }}
-              >
+              <span className="text-center font-lexend text-xs font-medium uppercase text-black">
                 PRICE
               </span>
-              <span
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  textAlign: "right",
-                }}
-              >
+              <span className="text-right font-lexend text-xs font-medium uppercase text-black">
                 SUBTOTAL
               </span>
             </div>
 
             {/* Cart Item */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1fr 1fr 1fr",
-                alignItems: "center",
-                paddingBottom: "24px",
-                borderBottom: "1px solid #E5E5E5",
-                marginBottom: "40px",
-              }}
-            >
+            <div className="mb-8 flex flex-col gap-4 border-b border-[#E5E5E5] pb-6 lg:mb-10 lg:grid lg:grid-cols-[2fr_1fr_1fr_1fr] lg:items-center">
               {/* Product Info */}
-              <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                <div
-                  style={{
-                    width: "100px",
-                    height: "100px",
-                    backgroundColor: "#E5E5E5",
-                    borderRadius: "8px",
-                    flexShrink: 0,
-                  }}
-                />
+              <div className="flex items-center gap-4">
+                <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-[#E5E5E5] lg:h-[100px] lg:w-[100px]" />
                 <div>
-                  <h3
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "16px",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
+                  <h3 className="mb-1 font-lexend text-sm font-semibold uppercase text-black lg:text-base">
                     THIS IS THE PRODUCT NAME
                   </h3>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "#666666",
-                      marginBottom: "8px",
-                    }}
-                  >
+                  <p className="mb-2 font-lexend text-sm font-normal text-[#666666]">
                     Product Description
                   </p>
-                  <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "12px",
-                      color: "#999999",
-                      cursor: "pointer",
-                      textTransform: "uppercase",
-                      padding: 0,
-                    }}
-                  >
+                  <button className="bg-transparent p-0 font-lexend text-xs font-normal uppercase text-[#999999]">
                     REMOVE
                   </button>
                 </div>
               </div>
 
               {/* Quantity */}
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    border: "1px solid #E5E5E5",
-                    borderRadius: "4px",
-                  }}
-                >
+              <div className="flex lg:justify-center">
+                <div className="flex items-center rounded border border-[#E5E5E5]">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      border: "none",
-                      backgroundColor: "transparent",
-                      cursor: "pointer",
-                      fontFamily: "Lexend, sans-serif",
-                      fontSize: "16px",
-                    }}
+                    className="h-8 w-8 bg-transparent font-lexend text-base"
                   >
                     -
                   </button>
-                  <span
-                    style={{
-                      width: "32px",
-                      textAlign: "center",
-                      fontFamily: "Lexend, sans-serif",
-                      fontSize: "14px",
-                    }}
-                  >
+                  <span className="w-8 text-center font-lexend text-sm">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      border: "none",
-                      backgroundColor: "transparent",
-                      cursor: "pointer",
-                      fontFamily: "Lexend, sans-serif",
-                      fontSize: "16px",
-                    }}
+                    className="h-8 w-8 bg-transparent font-lexend text-base"
                   >
                     +
                   </button>
@@ -308,35 +124,19 @@ export default function CartPage() {
               </div>
 
               {/* Price */}
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "16px",
-                  color: "#000000",
-                  textAlign: "center",
-                }}
-              >
+              <p className="font-lexend text-base font-normal text-black lg:text-center">
                 ₹{price}
               </p>
 
               {/* Subtotal */}
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  color: "#000000",
-                  textAlign: "right",
-                }}
-              >
+              <p className="font-lexend text-base font-semibold text-black lg:text-right">
                 ₹{subtotal}
               </p>
             </div>
 
             {/* Coupon Section */}
-            <div style={{ marginBottom: "24px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+            <div className="mb-6">
+              <div className="mb-2 flex items-center gap-2">
                 <svg
                   width="20"
                   height="20"
@@ -359,80 +159,30 @@ export default function CartPage() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <h3
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    color: "#000000",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <h3 className="font-lexend text-sm font-semibold uppercase text-black">
                   HAVE A COUPON?
                 </h3>
               </div>
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "12px",
-                  color: "#999999",
-                  textTransform: "uppercase",
-                  marginBottom: "12px",
-                }}
-              >
+              <p className="mb-3 font-lexend text-xs font-normal uppercase text-[#999999]">
                 ADD YOUR CODE FOR AN INSTANT DISCOUNT
               </p>
-              <div style={{ display: "flex", gap: "12px" }}>
+              <div className="flex gap-3">
                 <input
                   type="text"
                   placeholder="Enter Code"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
-                  style={{
-                    flex: 1,
-                    maxWidth: "300px",
-                    height: "44px",
-                    padding: "0 16px",
-                    border: "1px solid #E5E5E5",
-                    borderRadius: "4px",
-                    fontFamily: "Lexend, sans-serif",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
+                  className="h-11 max-w-[300px] flex-1 rounded border border-[#E5E5E5] px-4 font-lexend text-sm outline-none"
                 />
-                <button
-                  style={{
-                    width: "100px",
-                    height: "44px",
-                    backgroundColor: "transparent",
-                    border: "1px solid #000000",
-                    borderRadius: "4px",
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    color: "#000000",
-                    textTransform: "uppercase",
-                    cursor: "pointer",
-                  }}
-                >
+                <button className="h-11 w-24 rounded border border-black bg-transparent font-lexend text-sm font-medium uppercase text-black">
                   APPLY
                 </button>
               </div>
             </div>
 
             {/* Royalty Rewards */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "20px 24px",
-                backgroundColor: "#F5F5F5",
-                borderRadius: "8px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div className="flex flex-col gap-4 rounded-lg bg-[#F5F5F5] px-5 py-4 sm:flex-row sm:items-center sm:justify-between lg:px-6 lg:py-5">
+              <div className="flex items-center gap-3">
                 <svg
                   width="24"
                   height="24"
@@ -449,51 +199,19 @@ export default function CartPage() {
                   />
                 </svg>
                 <div>
-                  <h4
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
+                  <h4 className="mb-1 font-lexend text-sm font-semibold uppercase text-black">
                     ROYALTY REWARDS
                   </h4>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "12px",
-                      color: "#666666",
-                    }}
-                  >
+                  <p className="font-lexend text-xs font-normal text-[#666666]">
                     Earn 400 points on this order
                   </p>
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <p
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "12px",
-                    color: "#666666",
-                    textTransform: "uppercase",
-                    marginBottom: "4px",
-                  }}
-                >
+              <div className="text-left sm:text-right">
+                <p className="mb-1 font-lexend text-xs font-normal uppercase text-[#666666]">
                   BALANCE
                 </p>
-                <p
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "16px",
-                    color: "#000000",
-                  }}
-                >
+                <p className="font-lexend text-base font-semibold text-black">
                   1,240 pts
                 </p>
               </div>
@@ -501,74 +219,32 @@ export default function CartPage() {
           </div>
 
           {/* Right Side - Cart Summary */}
-          <div style={{ width: "350px" }}>
+          <div className="w-full lg:w-[350px] xl:w-[380px]">
             {/* Cart Summary Card */}
-            <div
-              style={{
-                border: "1px solid #E5E5E5",
-                borderRadius: "8px",
-                padding: "24px",
-                marginBottom: "24px",
-              }}
-            >
-              <h3
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  marginBottom: "24px",
-                }}
-              >
+            <div className="mb-6 rounded-lg border border-[#E5E5E5] p-5 lg:p-6">
+              <h3 className="mb-6 font-lexend text-base font-semibold uppercase text-black">
                 CART SUMMARY
               </h3>
 
               {/* Shipping Options */}
-              <div style={{ marginBottom: "24px" }}>
+              <div className="mb-6">
                 {/* Free Shipping */}
                 <label
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "12px 16px",
-                    border: selectedShipping === "free" ? "2px solid #000000" : "1px solid #E5E5E5",
-                    borderRadius: "8px",
-                    marginBottom: "12px",
-                    cursor: "pointer",
-                  }}
+                  className={`mb-3 flex cursor-pointer items-center justify-between rounded-lg px-4 py-3 ${
+                    selectedShipping === "free" ? "border-2 border-black" : "border border-[#E5E5E5]"
+                  }`}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div className="flex items-center gap-3">
                     <div
-                      style={{
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "50%",
-                        border: selectedShipping === "free" ? "6px solid #000000" : "2px solid #E5E5E5",
-                        backgroundColor: "#FFFFFF",
-                      }}
+                      className={`h-5 w-5 rounded-full bg-white ${
+                        selectedShipping === "free" ? "border-[6px] border-black" : "border-2 border-[#E5E5E5]"
+                      }`}
                     />
-                    <span
-                      style={{
-                        fontFamily: "Lexend, sans-serif",
-                        fontWeight: 500,
-                        fontSize: "14px",
-                        color: "#000000",
-                        textTransform: "uppercase",
-                      }}
-                    >
+                    <span className="font-lexend text-sm font-medium uppercase text-black">
                       FREE SHIPPING
                     </span>
                   </div>
-                  <span
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "#999999",
-                    }}
-                  >
+                  <span className="font-lexend text-sm font-normal text-[#999999]">
                     ₹0
                   </span>
                   <input
@@ -576,52 +252,27 @@ export default function CartPage() {
                     name="shipping"
                     checked={selectedShipping === "free"}
                     onChange={() => setSelectedShipping("free")}
-                    style={{ display: "none" }}
+                    className="hidden"
                   />
                 </label>
 
                 {/* Express Shipping */}
                 <label
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "12px 16px",
-                    border: selectedShipping === "express" ? "2px solid #000000" : "1px solid #E5E5E5",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                  }}
+                  className={`flex cursor-pointer items-center justify-between rounded-lg px-4 py-3 ${
+                    selectedShipping === "express" ? "border-2 border-black" : "border border-[#E5E5E5]"
+                  }`}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div className="flex items-center gap-3">
                     <div
-                      style={{
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "50%",
-                        border: selectedShipping === "express" ? "6px solid #000000" : "2px solid #E5E5E5",
-                        backgroundColor: "#FFFFFF",
-                      }}
+                      className={`h-5 w-5 rounded-full bg-white ${
+                        selectedShipping === "express" ? "border-[6px] border-black" : "border-2 border-[#E5E5E5]"
+                      }`}
                     />
-                    <span
-                      style={{
-                        fontFamily: "Lexend, sans-serif",
-                        fontWeight: 500,
-                        fontSize: "14px",
-                        color: "#000000",
-                        textTransform: "uppercase",
-                      }}
-                    >
+                    <span className="font-lexend text-sm font-medium uppercase text-black">
                       EXPRESS SHIPPING
                     </span>
                   </div>
-                  <span
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "#999999",
-                    }}
-                  >
+                  <span className="font-lexend text-sm font-normal text-[#999999]">
                     +₹400
                   </span>
                   <input
@@ -629,174 +280,55 @@ export default function CartPage() {
                     name="shipping"
                     checked={selectedShipping === "express"}
                     onChange={() => setSelectedShipping("express")}
-                    style={{ display: "none" }}
+                    className="hidden"
                   />
                 </label>
               </div>
 
               {/* Subtotal */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "16px",
-                  paddingTop: "16px",
-                  borderTop: "1px solid #E5E5E5",
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "14px",
-                    color: "#666666",
-                    textTransform: "uppercase",
-                  }}
-                >
+              <div className="mb-4 flex justify-between border-t border-[#E5E5E5] pt-4">
+                <span className="font-lexend text-sm font-normal uppercase text-[#666666]">
                   SUBTOTAL
                 </span>
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    color: "#000000",
-                  }}
-                >
+                <span className="font-lexend text-sm font-medium text-black">
                   ₹{subtotal}
                 </span>
               </div>
 
               {/* Total */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "24px",
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "16px",
-                    color: "#000000",
-                    textTransform: "uppercase",
-                  }}
-                >
+              <div className="mb-6 flex justify-between">
+                <span className="font-lexend text-base font-semibold uppercase text-black">
                   TOTAL
                 </span>
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 700,
-                    fontSize: "20px",
-                    color: "#000000",
-                  }}
-                >
+                <span className="font-lexend text-xl font-bold text-black">
                   ₹{total}
                 </span>
               </div>
 
               {/* Checkout Button */}
-              <button
-                style={{
-                  width: "100%",
-                  height: "52px",
-                  backgroundColor: "#E5E5E5",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                }}
-              >
+              <button className="h-[52px] w-full rounded-lg bg-[#E5E5E5] font-lexend text-sm font-semibold uppercase text-black">
                 CHECKOUT
               </button>
             </div>
 
             {/* Complete The Collection */}
-            <div
-              style={{
-                border: "1px solid #E5E5E5",
-                borderRadius: "8px",
-                padding: "24px",
-              }}
-            >
-              <h3
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  marginBottom: "20px",
-                }}
-              >
+            <div className="rounded-lg border border-[#E5E5E5] p-5 lg:p-6">
+              <h3 className="mb-5 font-lexend text-base font-semibold uppercase text-black">
                 COMPLETE THE COLLECTION
               </h3>
 
               {/* Suggestion Item 1 */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "12px",
-                  border: "1px solid #E5E5E5",
-                  borderRadius: "8px",
-                  marginBottom: "12px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "60px",
-                    height: "60px",
-                    backgroundColor: "#E5E5E5",
-                    borderRadius: "4px",
-                    flexShrink: 0,
-                  }}
-                />
-                <div style={{ flex: 1 }}>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
+              <div className="mb-3 flex items-center gap-3 rounded-lg border border-[#E5E5E5] p-3">
+                <div className="h-[60px] w-[60px] shrink-0 rounded bg-[#E5E5E5]" />
+                <div className="flex-1">
+                  <p className="mb-1 font-lexend text-sm font-semibold uppercase text-black">
                     PRODUCT NAME
                   </p>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "#666666",
-                    }}
-                  >
+                  <p className="font-lexend text-sm font-normal text-[#666666]">
                     ₹220
                   </p>
                 </div>
-                <button
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    border: "1px solid #E5E5E5",
-                    borderRadius: "4px",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+                <button className="flex h-8 w-8 items-center justify-center rounded border border-[#E5E5E5] bg-transparent">
                   <svg
                     width="16"
                     height="16"
@@ -815,62 +347,17 @@ export default function CartPage() {
               </div>
 
               {/* Suggestion Item 2 */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "12px",
-                  border: "1px solid #E5E5E5",
-                  borderRadius: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "60px",
-                    height: "60px",
-                    backgroundColor: "#E5E5E5",
-                    borderRadius: "4px",
-                    flexShrink: 0,
-                  }}
-                />
-                <div style={{ flex: 1 }}>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
+              <div className="flex items-center gap-3 rounded-lg border border-[#E5E5E5] p-3">
+                <div className="h-[60px] w-[60px] shrink-0 rounded bg-[#E5E5E5]" />
+                <div className="flex-1">
+                  <p className="mb-1 font-lexend text-sm font-semibold uppercase text-black">
                     PRODUCT NAME
                   </p>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "#666666",
-                    }}
-                  >
+                  <p className="font-lexend text-sm font-normal text-[#666666]">
                     ₹220
                   </p>
                 </div>
-                <button
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    border: "1px solid #E5E5E5",
-                    borderRadius: "4px",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+                <button className="flex h-8 w-8 items-center justify-center rounded border border-[#E5E5E5] bg-transparent">
                   <svg
                     width="16"
                     height="16"

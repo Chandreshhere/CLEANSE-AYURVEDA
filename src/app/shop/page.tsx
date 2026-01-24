@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { TopUtilityBar, MainHeader, Footer } from "@/components/layout";
@@ -238,7 +238,7 @@ const ShopProductCard: React.FC<{ product: Product }> = ({ product }) => {
   );
 };
 
-export default function ShopPage() {
+function ShopContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryParam = searchParams.get("category");
@@ -500,5 +500,13 @@ export default function ShopPage() {
       {/* Footer */}
       <Footer />
     </main>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ShopContent />
+    </Suspense>
   );
 }

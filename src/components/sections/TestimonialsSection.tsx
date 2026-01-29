@@ -1,18 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { getTestimonials, getBanners, getHomepageSections } from "@/lib/api/cms";
 
 interface TestimonialCardProps {
   name: string;
   review: string;
   bgColor: string;
+  rating: number;
+  customerPhoto: string | null;
+  beforePhoto: string | null;
+  afterPhoto: string | null;
 }
 
-const TestimonialCard: React.FC<TestimonialCardProps> = ({ name, review, bgColor }) => (
+const TestimonialCard: React.FC<TestimonialCardProps> = ({
+  name,
+  review,
+  bgColor,
+  rating,
+  customerPhoto,
+  beforePhoto,
+  afterPhoto
+}) => (
   <div
     style={{
       width: "440px",
-      height: "430px",
+      minHeight: "430px",
       backgroundColor: bgColor,
       borderRadius: "20px",
       padding: "36px",
@@ -20,7 +34,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ name, review, bgColor
     }}
   >
     {/* Avatar and Name Row */}
-    <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "40px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "20px" }}>
       {/* Avatar Circle */}
       <div
         style={{
@@ -28,14 +42,25 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ name, review, bgColor
           height: "89px",
           borderRadius: "50%",
           backgroundColor: "#FFFFFF",
+          overflow: "hidden",
         }}
-      />
+      >
+        {customerPhoto && (
+          <img
+            src={customerPhoto}
+            alt={name}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        )}
+      </div>
       <div>
         {/* Name */}
         <p
           style={{
-            width: "192px",
-            height: "30px",
             fontFamily: "Lexend, sans-serif",
             fontWeight: 700,
             fontSize: "24px",
@@ -43,38 +68,99 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ name, review, bgColor
             letterSpacing: "0",
             color: "#000000",
             marginBottom: "8px",
-            whiteSpace: "nowrap",
           }}
         >
           {name}
         </p>
-        {/* Rectangle below name */}
-        <div
-          style={{
-            width: "143px",
-            height: "18px",
-            backgroundColor: "#FFFFFF",
-          }}
-        />
+        {/* Rating Stars */}
+        <div style={{ display: "flex", gap: "4px" }}>
+          {[...Array(5)].map((_, i) => (
+            <svg
+              key={i}
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill={i < rating ? "#FFD700" : "#CCCCCC"}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M8 0L9.79611 5.52786H15.6085L10.9062 8.94427L12.7023 14.4721L8 11.0557L3.29772 14.4721L5.09383 8.94427L0.391548 5.52786H6.20389L8 0Z" />
+            </svg>
+          ))}
+        </div>
       </div>
     </div>
 
     {/* Review Text */}
     <p
       style={{
-        width: "352px",
-        height: "213px",
         fontFamily: "Lexend, sans-serif",
         fontWeight: 400,
         fontSize: "18px",
-        lineHeight: "100%",
+        lineHeight: "140%",
         letterSpacing: "0",
         color: "#000000",
         opacity: 0.8,
+        marginBottom: "20px",
       }}
     >
       {review}
     </p>
+
+    {/* Before/After Photos */}
+    {(beforePhoto || afterPhoto) && (
+      <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
+        {beforePhoto && (
+          <div style={{ flex: 1 }}>
+            <p
+              style={{
+                fontFamily: "Lexend, sans-serif",
+                fontWeight: 600,
+                fontSize: "12px",
+                marginBottom: "8px",
+                color: "#000000",
+              }}
+            >
+              BEFORE
+            </p>
+            <img
+              src={beforePhoto}
+              alt="Before"
+              style={{
+                width: "100%",
+                height: "150px",
+                objectFit: "cover",
+                borderRadius: "12px",
+              }}
+            />
+          </div>
+        )}
+        {afterPhoto && (
+          <div style={{ flex: 1 }}>
+            <p
+              style={{
+                fontFamily: "Lexend, sans-serif",
+                fontWeight: 600,
+                fontSize: "12px",
+                marginBottom: "8px",
+                color: "#000000",
+              }}
+            >
+              AFTER
+            </p>
+            <img
+              src={afterPhoto}
+              alt="After"
+              style={{
+                width: "100%",
+                height: "150px",
+                objectFit: "cover",
+                borderRadius: "12px",
+              }}
+            />
+          </div>
+        )}
+      </div>
+    )}
   </div>
 );
 
@@ -114,39 +200,107 @@ const ArrowButton: React.FC<{ direction: "left" | "right"; onClick: () => void }
 
 export const TestimonialsSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [testimonials, setTestimonials] = useState<
+    Array<{
+      name: string;
+      review: string;
+      bgColor: string;
+      rating: number;
+      customerPhoto: string | null;
+      beforePhoto: string | null;
+      afterPhoto: string | null;
+    }>
+  >([]);
+  const [banner, setBanner] = useState<{
+    title: string;
+    subtitle: string;
+    ctaText: string;
+    ctaUrl: string;
+    imageUrl: string;
+  } | null>(null);
+  const [featuresSection, setFeaturesSection] = useState<{
+    heading: string;
+    subheading: string;
+    backgroundColor: string;
+    textColor: string;
+    features: Array<{ icon: string; heading: string; description: string }>;
+  } | null>(null);
 
-  const testimonials = [
-    {
-      name: "Akshat Jain",
-      review: `"qui irure laborum labore voluptate mollit reprehenderit laborum enim minim voluptate ad ipsum labore nulla ad cupidatat id enim id aute ad sint do excepteur quis ut consectetur qui Lorem adipisicing ipsum sit sit magna ipsum excepteur elit exercitation id veniam ex adipisicing voluptate adipisicing nostrud labore duis quis eiusmod aute enim pariatur incididunt"`,
-      bgColor: "#F5EDE0",
-    },
-    {
-      name: "Bhavya Kothari",
-      review: `"qui irure laborum labore voluptate mollit reprehenderit laborum enim minim voluptate ad ipsum labore nulla ad cupidatat id enim id aute ad sint do excepteur quis ut consectetur qui Lorem adipisicing ipsum sit sit magna ipsum excepteur elit exercitation id veniam ex adipisicing voluptate adipisicing nostrud labore duis quis eiusmod aute enim pariatur incididunt"`,
-      bgColor: "#D5DCCE",
-    },
-    {
-      name: "Attharv Shrivastav",
-      review: `"qui irure laborum labore voluptate mollit reprehenderit laborum enim minim voluptate ad ipsum labore nulla ad cupidatat id enim id aute ad sint do excepteur quis ut consectetur qui Lorem adipisicing ipsum sit sit magna ipsum excepteur elit exercitation id veniam ex adipisicing voluptate adipisicing nostrud labore duis quis eiusmod aute enim pariatur incididunt"`,
-      bgColor: "#F5EDE0",
-    },
-    {
-      name: "Priya Sharma",
-      review: `"qui irure laborum labore voluptate mollit reprehenderit laborum enim minim voluptate ad ipsum labore nulla ad cupidatat id enim id aute ad sint do excepteur quis ut consectetur qui Lorem adipisicing ipsum sit sit magna ipsum excepteur elit exercitation id veniam ex adipisicing voluptate adipisicing nostrud labore duis quis eiusmod aute enim pariatur incididunt"`,
-      bgColor: "#D5DCCE",
-    },
-    {
-      name: "Rahul Verma",
-      review: `"qui irure laborum labore voluptate mollit reprehenderit laborum enim minim voluptate ad ipsum labore nulla ad cupidatat id enim id aute ad sint do excepteur quis ut consectetur qui Lorem adipisicing ipsum sit sit magna ipsum excepteur elit exercitation id veniam ex adipisicing voluptate adipisicing nostrud labore duis quis eiusmod aute enim pariatur incididunt"`,
-      bgColor: "#F5EDE0",
-    },
-    {
-      name: "Ananya Gupta",
-      review: `"qui irure laborum labore voluptate mollit reprehenderit laborum enim minim voluptate ad ipsum labore nulla ad cupidatat id enim id aute ad sint do excepteur quis ut consectetur qui Lorem adipisicing ipsum sit sit magna ipsum excepteur elit exercitation id veniam ex adipisicing voluptate adipisicing nostrud labore duis quis eiusmod aute enim pariatur incididunt"`,
-      bgColor: "#D5DCCE",
-    },
-  ];
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const response = await getTestimonials(10);
+
+        if (response.data && response.data.length > 0) {
+          const testimonialsData = response.data.map((testimonial, index) => ({
+            name: testimonial.customer_name,
+            review: testimonial.testimonial_text,
+            bgColor: index % 2 === 0 ? "#F5EDE0" : "#D5DCCE",
+            rating: testimonial.rating,
+            customerPhoto: testimonial.customer_photo_url,
+            beforePhoto: testimonial.before_photo_url,
+            afterPhoto: testimonial.after_photo_url,
+          }));
+
+          setTestimonials(testimonialsData);
+        }
+      } catch (err) {
+        console.error('Error fetching testimonials:', err);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const response = await getBanners('mid_page');
+
+        if (response.data && response.data.length > 0) {
+          const bannerData = response.data[0];
+          setBanner({
+            title: bannerData.title || "Ancient Secrets, Modern Radiance",
+            subtitle: bannerData.subtitle || "Infused with Turmeric and Rose Petals.",
+            ctaText: bannerData.cta_text || "SHOP NOW",
+            ctaUrl: bannerData.cta_url || "/collections/spring-2026",
+            imageUrl: bannerData.image_desktop_url || "/product.png",
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching banner:', err);
+      }
+    };
+
+    fetchBanner();
+  }, []);
+
+  useEffect(() => {
+    const fetchFeaturesSection = async () => {
+      try {
+        const response = await getHomepageSections('features_grid', true);
+
+        if (response.data?.sections && response.data.sections.length > 0) {
+          const section = response.data.sections[0];
+          setFeaturesSection({
+            heading: section.heading || '',
+            subheading: section.subheading || '',
+            backgroundColor: section.background_color || '#C4C4C4',
+            textColor: section.text_color || '#000000',
+            features: (section.features || []).map((feature) => ({
+              icon: feature.icon_url || '',
+              heading: feature.heading,
+              description: feature.description,
+            })),
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching features section:', err);
+      }
+    };
+
+    fetchFeaturesSection();
+  }, []);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : testimonials.length - 3));
@@ -155,6 +309,10 @@ export const TestimonialsSection: React.FC = () => {
   const handleNext = () => {
     setCurrentIndex((prev) => (prev < testimonials.length - 3 ? prev + 1 : 0));
   };
+
+  if (testimonials.length === 0 && !banner && !featuresSection) {
+    return null;
+  }
 
   return (
     <section className="w-full bg-off-white" style={{ overflow: "hidden" }}>
@@ -167,330 +325,270 @@ export const TestimonialsSection: React.FC = () => {
         }}
       >
         {/* Testimonials Container - 1445x630 */}
-        <div
-          style={{
-            width: "1445px",
-            height: "630px",
-            opacity: 1,
-          }}
-        >
-          {/* Header Row */}
+        {testimonials.length > 0 && (
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: "60px",
+              width: "1445px",
+              height: "630px",
+              opacity: 1,
             }}
           >
-            {/* Title */}
-            <h2
-              style={{
-                width: "678px",
-                height: "106px",
-                fontFamily: "Lexend Exa, sans-serif",
-                fontWeight: 400,
-                fontSize: "42px",
-                lineHeight: "100%",
-                letterSpacing: "0",
-                textTransform: "uppercase",
-                color: "#000000",
-              }}
-            >
-              LISTEN TO WHAT OUR
-              <br />
-              CLIENTS SAY ABOUT US?
-            </h2>
-
-            {/* Arrow Buttons */}
-            <div style={{ display: "flex", gap: "16px", marginRight: "150px", marginTop: "20px" }}>
-              <ArrowButton direction="left" onClick={handlePrev} />
-              <ArrowButton direction="right" onClick={handleNext} />
-            </div>
-          </div>
-
-          {/* Testimonials Carousel */}
-          <div style={{ overflow: "visible" }}>
+            {/* Header Row */}
             <div
               style={{
                 display: "flex",
-                gap: "24px",
-                transform: `translateX(-${currentIndex * (440 + 24)}px)`,
-                transition: "transform 0.3s ease-in-out",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: "60px",
               }}
             >
-              {testimonials.map((testimonial, index) => (
-                <TestimonialCard
-                  key={index}
-                  name={testimonial.name}
-                  review={testimonial.review}
-                  bgColor={testimonial.bgColor}
-                />
-              ))}
+              {/* Title */}
+              <h2
+                style={{
+                  width: "678px",
+                  height: "106px",
+                  fontFamily: "Lexend Exa, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "42px",
+                  lineHeight: "100%",
+                  letterSpacing: "0",
+                  textTransform: "uppercase",
+                  color: "#000000",
+                }}
+              >
+                LISTEN TO WHAT OUR
+                <br />
+                CLIENTS SAY ABOUT US?
+              </h2>
+
+              {/* Arrow Buttons */}
+              <div style={{ display: "flex", gap: "16px", marginRight: "150px", marginTop: "20px" }}>
+                <ArrowButton direction="left" onClick={handlePrev} />
+                <ArrowButton direction="right" onClick={handleNext} />
+              </div>
+            </div>
+
+            {/* Testimonials Carousel */}
+            <div style={{ overflow: "visible" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "24px",
+                  transform: `translateX(-${currentIndex * (440 + 24)}px)`,
+                  transition: "transform 0.3s ease-in-out",
+                }}
+              >
+                {testimonials.map((testimonial, index) => (
+                  <TestimonialCard
+                    key={index}
+                    name={testimonial.name}
+                    review={testimonial.review}
+                    bgColor={testimonial.bgColor}
+                    rating={testimonial.rating}
+                    customerPhoto={testimonial.customerPhoto}
+                    beforePhoto={testimonial.beforePhoto}
+                    afterPhoto={testimonial.afterPhoto}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Ancient Secrets Banner */}
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "1378px",
-            height: "463px",
-            borderRadius: "20px",
-            background: "linear-gradient(90deg, #6F4B46 0%, #442824 100%)",
-            position: "relative",
-            overflow: "visible",
-            marginTop: "150px",
-          }}
-        >
-          {/* Product Image */}
-          <img
-            src="/product.png"
-            alt="Cleanse Ayurveda Products"
-            style={{
-              width: "1200px",
-              height: "1000px",
-              objectFit: "contain",
-              position: "absolute",
-              left: "-200px",
-              bottom: "-240px",
-              transform: "rotate(5deg)",
-            }}
-          />
-
-          {/* Text Content */}
+        {banner && (
           <div
             style={{
-              position: "absolute",
-              right: "100px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              textAlign: "right",
+              width: "100%",
+              maxWidth: "1378px",
+              height: "463px",
+              borderRadius: "20px",
+              background: "linear-gradient(90deg, #6F4B46 0%, #442824 100%)",
+              position: "relative",
+              overflow: "visible",
+              marginTop: "150px",
             }}
           >
-            {/* Ancient Secrets Title */}
-            <h3
+            {/* Product Image */}
+            <img
+              src={banner.imageUrl}
+              alt="Cleanse Ayurveda Products"
               style={{
-                width: "549px",
-                height: "134px",
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 600,
-                fontSize: "48px",
-                lineHeight: "100%",
-                letterSpacing: "0",
-                textAlign: "right",
-                color: "#FFFFFF",
-                marginBottom: "20px",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                position: "absolute",
+                left: "0",
+                bottom: "0",
+                borderRadius: "20px",
               }}
-            >
-              Ancient Secrets,
-              <br />
-              Modern Radiance
-            </h3>
+            />
 
-            {/* Infused Text */}
-            <p
+            {/* Text Content */}
+            <div
               style={{
-                width: "459px",
-                height: "30px",
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 400,
-                fontSize: "24px",
-                lineHeight: "100%",
-                letterSpacing: "0",
+                position: "absolute",
+                right: "100px",
+                top: "50%",
+                transform: "translateY(-50%)",
                 textAlign: "right",
-                color: "#FFFFFF",
-                marginBottom: "40px",
-                marginLeft: "auto",
               }}
             >
-              Infused with Turmeric and Rose Petals.
-            </p>
-
-            {/* Shop Now Button */}
-            <button
-              style={{
-                width: "182px",
-                height: "50px",
-                borderRadius: "35px",
-                backgroundColor: "#FFFFFF",
-                border: "none",
-                paddingTop: "10px",
-                paddingRight: "23px",
-                paddingBottom: "10px",
-                paddingLeft: "23px",
-                cursor: "pointer",
-                marginLeft: "auto",
-                display: "block",
-              }}
-            >
-              <span
+              {/* Title */}
+              <h3
                 style={{
+                  width: "549px",
+                  height: "134px",
+                  fontFamily: "Lexend, sans-serif",
+                  fontWeight: 600,
+                  fontSize: "48px",
+                  lineHeight: "100%",
+                  letterSpacing: "0",
+                  textAlign: "right",
+                  color: "#FFFFFF",
+                  marginBottom: "20px",
+                }}
+              >
+                {banner.title.split(',').map((line, index) => (
+                  <React.Fragment key={index}>
+                    {line.trim()}
+                    {index < banner.title.split(',').length - 1 && ','}
+                    {index < banner.title.split(',').length - 1 && <br />}
+                  </React.Fragment>
+                ))}
+              </h3>
+
+              {/* Subtitle */}
+              <p
+                style={{
+                  width: "459px",
+                  height: "30px",
                   fontFamily: "Lexend, sans-serif",
                   fontWeight: 400,
                   fontSize: "24px",
                   lineHeight: "100%",
                   letterSpacing: "0",
                   textAlign: "right",
-                  color: "#000000",
+                  color: "#FFFFFF",
+                  marginBottom: "40px",
+                  marginLeft: "auto",
                 }}
               >
-                SHOP NOW
-              </span>
-            </button>
+                {banner.subtitle}
+              </p>
+
+              {/* CTA Button */}
+              <Link href={banner.ctaUrl}>
+                <button
+                  style={{
+                    width: "182px",
+                    height: "50px",
+                    borderRadius: "35px",
+                    backgroundColor: "#FFFFFF",
+                    border: "none",
+                    paddingTop: "10px",
+                    paddingRight: "23px",
+                    paddingBottom: "10px",
+                    paddingLeft: "23px",
+                    cursor: "pointer",
+                    marginLeft: "auto",
+                    display: "block",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "24px",
+                      lineHeight: "100%",
+                      letterSpacing: "0",
+                      textAlign: "right",
+                      color: "#000000",
+                    }}
+                  >
+                    {banner.ctaText}
+                  </span>
+                </button>
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Features/Badges Section */}
-        <div
-          style={{
-            width: "1512px",
-            height: "460px",
-            backgroundColor: "#C4C4C4",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginTop: "200px",
-            marginLeft: "-67px",
-          }}
-        >
-          {/* Badges Container */}
+        {featuresSection && (
           <div
             style={{
-              width: "1265px",
-              height: "298px",
+              width: "1512px",
+              height: "460px",
+              backgroundColor: "#C4C4C4",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "137px",
+              marginTop: "200px",
+              marginLeft: "-67px",
             }}
           >
-            {/* Badge 1 - Express Shipping */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: "213px",
-                  height: "213px",
-                  borderRadius: "22px",
-                  backgroundColor: "#D9D9D9",
-                }}
-              />
-              <p
-                style={{
-                  width: "213px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "center",
-                  color: "#000000",
-                  marginTop: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                Express Shipping
-              </p>
-            </div>
-
-            {/* Badge 2 - Cruelty Free */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: "213px",
-                  height: "213px",
-                  borderRadius: "22px",
-                  backgroundColor: "#D9D9D9",
-                }}
-              />
-              <p
-                style={{
-                  width: "213px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "center",
-                  color: "#000000",
-                  marginTop: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                Cruelty Free
-              </p>
-            </div>
-
-            {/* Badge 3 - 100% Ayurvedic */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: "213px",
-                  height: "213px",
-                  borderRadius: "22px",
-                  backgroundColor: "#D9D9D9",
-                }}
-              />
-              <p
-                style={{
-                  width: "213px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "center",
-                  color: "#000000",
-                  marginTop: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                100% Ayurvedic
-              </p>
-            </div>
-
-            {/* Badge 4 - Made In India */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div
-                style={{
-                  width: "213px",
-                  height: "213px",
-                  borderRadius: "22px",
-                  backgroundColor: "#D9D9D9",
-                }}
-              />
-              <p
-                style={{
-                  width: "213px",
-                  height: "50px",
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  textAlign: "center",
-                  color: "#000000",
-                  marginTop: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                Made In India
-              </p>
+            {/* Badges Container */}
+            <div
+              style={{
+                width: "1265px",
+                height: "298px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "50px",
+              }}
+            >
+              {featuresSection.features.map((feature, index) => (
+                <div key={index} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div
+                    style={{
+                      width: "140px",
+                      height: "140px",
+                      borderRadius: "22px",
+                      backgroundColor: "#D9D9D9",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {feature.icon && (
+                      <img
+                        src={feature.icon}
+                        alt={feature.heading}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <p
+                    style={{
+                      width: "140px",
+                      height: "50px",
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 700,
+                      fontSize: "16px",
+                      lineHeight: "100%",
+                      letterSpacing: "0",
+                      textAlign: "center",
+                      color: featuresSection.textColor,
+                      marginTop: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {feature.heading}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

@@ -1,10 +1,15 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { getBlogs } from "@/lib/api/cms";
 
 interface BlogCardProps {
   image: string;
   category: string;
   title: string;
   description: string;
+  slug: string;
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({
@@ -12,6 +17,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
   category,
   title,
   description,
+  slug,
 }) => (
   <div>
     {/* Image Container */}
@@ -103,8 +109,8 @@ const BlogCard: React.FC<BlogCardProps> = ({
       </p>
 
       {/* Read More Link */}
-      <a
-        href="#"
+      <Link
+        href={`/blogs/${slug}`}
         className="text-black"
         style={{
           display: "inline-flex",
@@ -136,28 +142,41 @@ const BlogCard: React.FC<BlogCardProps> = ({
             strokeLinejoin="round"
           />
         </svg>
-      </a>
+      </Link>
     </div>
   </div>
 );
 
 export const BlogSection: React.FC = () => {
-  const blogs = [
-    {
-      image: "/jar.png",
-      category: "Rituals",
-      title: "THE ART OF EVENING WIND DOWN",
-      description:
-        "Explore the ancient Ayurvedic Techniques to prepare your body for deep restorative sleep.",
-    },
-    {
-      image: "/shot.png",
-      category: "Rituals",
-      title: "THE ART OF EVENING WIND DOWN",
-      description:
-        "Explore the ancient Ayurvedic Techniques to prepare your body for deep restorative sleep.",
-    },
-  ];
+  const [blogs, setBlogs] = useState<Array<{ image: string; category: string; title: string; description: string; slug: string }>>([]);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await getBlogs(1, 2);
+
+        if (response.data?.blogs && response.data.blogs.length > 0) {
+          const blogData = response.data.blogs.map((blog) => ({
+            image: blog.featured_image_url,
+            category: blog.category_id.name,
+            title: blog.title,
+            description: blog.excerpt,
+            slug: blog.slug,
+          }));
+
+          setBlogs(blogData);
+        }
+      } catch (err) {
+        console.error('Error fetching blogs:', err);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
+
+  if (blogs.length === 0) {
+    return null;
+  }
 
   return (
     <section className="w-full bg-off-white">
@@ -210,14 +229,15 @@ export const BlogSection: React.FC = () => {
               category={blog.category}
               title={blog.title}
               description={blog.description}
+              slug={blog.slug}
             />
           ))}
         </div>
 
         {/* View All Blogs Link */}
         <div className="mt-16 text-center">
-          <a
-            href="#"
+          <Link
+            href="/blogs"
             className="text-black"
             style={{
               display: "inline-block",
@@ -232,7 +252,7 @@ export const BlogSection: React.FC = () => {
             }}
           >
             VIEW ALL BLOGS
-          </a>
+          </Link>
         </div>
       </div>
     </section>

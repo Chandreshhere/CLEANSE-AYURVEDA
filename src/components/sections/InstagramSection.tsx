@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { getReels } from "@/lib/api/cms";
 
 const InstagramIcon: React.FC = () => (
   <svg
@@ -53,13 +56,33 @@ const ImageBox: React.FC<ImageBoxProps> = ({ image, alt }) => (
 );
 
 export const InstagramSection: React.FC = () => {
-  const images = [
-    { src: "/c1.png", alt: "Instagram post 1" },
-    { src: "/c2.png", alt: "Instagram post 2" },
-    { src: "/c3.png", alt: "Instagram post 3" },
-    { src: "/c4.png", alt: "Instagram post 4" },
-    { src: "/c5.png", alt: "Instagram post 5" },
-  ];
+  const [reels, setReels] = useState<Array<{ src: string; alt: string; videoUrl: string }>>([]);
+
+  useEffect(() => {
+    const fetchReels = async () => {
+      try {
+        const response = await getReels(5);
+
+        if (response.data && response.data.length > 0) {
+          const reelsData = response.data.map((reel) => ({
+            src: reel.thumbnail_url,
+            alt: reel.title,
+            videoUrl: reel.video_url,
+          }));
+
+          setReels(reelsData);
+        }
+      } catch (err) {
+        console.error('Error fetching reels:', err);
+      }
+    };
+
+    fetchReels();
+  }, []);
+
+  if (reels.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -148,8 +171,8 @@ export const InstagramSection: React.FC = () => {
             gap: "24px",
           }}
         >
-          {images.map((img, index) => (
-            <ImageBox key={index} image={img.src} alt={img.alt} />
+          {reels.map((reel, index) => (
+            <ImageBox key={index} image={reel.src} alt={reel.alt} />
           ))}
         </div>
       </div>

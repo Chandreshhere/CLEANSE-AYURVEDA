@@ -1,4 +1,34 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { getHomepageSections, type HomepageSection, type Product } from "@/lib/api";
+
+interface BentoImage {
+  url: string;
+  alt_text: string;
+  link_url: string | null;
+}
+
+interface BentoProduct {
+  product_id: string;
+  custom_image_url: string | null;
+}
+
+interface TextOverlay {
+  heading: string;
+  body: string;
+  position: string;
+}
+
+interface BentoItems {
+  images: BentoImage[];
+  products: BentoProduct[];
+  text_overlays: TextOverlay[];
+}
+
+interface BentoLayoutSection extends HomepageSection {
+  bento_items?: BentoItems;
+}
 
 interface ProductSpotlightCardProps {
   title: string;
@@ -149,8 +179,98 @@ const FloatingProductCard: React.FC<FloatingProductCardProps> = ({
 );
 
 export const WhyBestSection: React.FC = () => {
+  const [sectionData, setSectionData] = useState<BentoLayoutSection | null>(null);
+  const [showcaseSection, setShowcaseSection] = useState<HomepageSection | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBentoLayout = async () => {
+      try {
+        setIsLoading(true);
+        console.log('[WhyBestSection] Fetching bento_layout section from API...');
+
+        const response = await getHomepageSections('bento_layout');
+
+        if (response.data?.sections && response.data.sections.length > 0) {
+          const section = response.data.sections[0] as BentoLayoutSection;
+          setSectionData(section);
+          console.log('[WhyBestSection] ✅ Successfully fetched bento layout:', {
+            id: section._id,
+            name: section.name,
+            hasImages: section.bento_items?.images?.length || 0,
+            hasProducts: section.bento_items?.products?.length || 0,
+            hasTextOverlays: section.bento_items?.text_overlays?.length || 0,
+          });
+
+          // Fetch products if product_ids are provided
+          if (section.bento_items?.products && section.bento_items.products.length > 0) {
+            console.log('[WhyBestSection] Fetching products for bento layout...');
+            const productPromises = section.bento_items.products.map(async (item) => {
+              try {
+                const response = await fetch(`http://192.168.29.105:3000/api/products/${item.product_id}`);
+                if (response.ok) {
+                  const data = await response.json();
+                  return { ...data.data.product, custom_image_url: item.custom_image_url };
+                }
+                return null;
+              } catch (error) {
+                console.error(`[WhyBestSection] Failed to fetch product ${item.product_id}:`, error);
+                return null;
+              }
+            });
+
+            const fetchedProducts = await Promise.all(productPromises);
+            const validProducts = fetchedProducts.filter(p => p !== null);
+            setProducts(validProducts);
+            console.log('[WhyBestSection] ✅ Fetched products:', validProducts.length);
+          }
+        } else {
+          console.warn('[WhyBestSection] ⚠️ No bento_layout sections found in response');
+        }
+
+        // Fetch product showcase section for the full-width display
+        console.log('[WhyBestSection] Fetching product_showcase section from API...');
+        const showcaseResponse = await getHomepageSections('product_showcase');
+        if (showcaseResponse.data?.sections && showcaseResponse.data.sections.length > 0) {
+          setShowcaseSection(showcaseResponse.data.sections[0]);
+          console.log('[WhyBestSection] ✅ Successfully fetched product showcase section');
+        }
+      } catch (error) {
+        console.error('[WhyBestSection] ❌ Failed to fetch bento layout:', error);
+      } finally {
+        setIsLoading(false);
+        console.log('[WhyBestSection] Loading complete');
+      }
+    };
+
+    fetchBentoLayout();
+  }, []);
+
+  // Use API data or fallback to defaults
+  const heading = sectionData?.heading || "WHY YOUR SKIN\nDESERVES THE BEST?";
+  const backgroundColor = sectionData?.background_color || "#F5F1EB";
+  const textColor = sectionData?.text_color || "#000000";
+  const bentoItems = sectionData?.bento_items;
+
+  // Extract data from bento_items
+  const mainImage = bentoItems?.images?.[0];
+  const ecoImage = bentoItems?.images?.[1];
+  const product1 = products[0];
+  const product2 = products[1];
+  const textOverlay1 = bentoItems?.text_overlays?.[0];
+  const textOverlay2 = bentoItems?.text_overlays?.[1];
+
+  // Fallback data
+  const fallbackMainImage = { url: "/why-best-woman.png", alt_text: "Natural skincare", link_url: null };
+  const fallbackEcoImage = { url: "/eco-packaging.png", alt_text: "Eco packaging", link_url: null };
+  const fallbackProduct1 = { name: "Product 1", pricing: { salePrice: 700 }, primaryImage: { url: "/spotlight-jar.png" } };
+  const fallbackProduct2 = { name: "Product 2", pricing: { salePrice: 700 }, primaryImage: { url: "/spotlight-tube.png" } };
+  const fallbackTextOverlay1 = { heading: "Proven Effectiveness", body: "Some stat to prove the same", position: "bottom_left" };
+  const fallbackTextOverlay2 = { heading: "ECO FRIENDLY PACKAGING", body: "Lorem sit officia sint esse veniam aliquip ullamco ea consequat aute consectetur exercitation quis do Lorem veniam mollit ut nostrud commodo aute", position: "top_right" };
+
   return (
-    <section className="w-full bg-off-white">
+    <section className="w-full" style={{ backgroundColor }}>
       <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
         {/* Section Header Row */}
         <div className="mb-12 flex items-start justify-between">
@@ -166,11 +286,11 @@ export const WhyBestSection: React.FC = () => {
               lineHeight: "100%",
               letterSpacing: "0",
               textTransform: "uppercase",
+              whiteSpace: "pre-line",
+              color: textColor,
             }}
           >
-            WHY YOUR SKIN
-            <br />
-            DESERVES THE BEST?
+            {heading}
           </h2>
 
           {/* Right - Rating Group */}
@@ -283,14 +403,20 @@ export const WhyBestSection: React.FC = () => {
               borderRadius: "20px",
             }}
           >
-            <img
-              src="/why-best-woman.png"
-              alt="Woman holding Cleanse Ayurveda serum"
-              className="h-full w-full object-cover"
-              style={{
-                objectPosition: "center top",
-              }}
-            />
+            {(mainImage?.url || fallbackMainImage.url) ? (
+              <img
+                src={mainImage?.url || fallbackMainImage.url}
+                alt={mainImage?.alt_text || fallbackMainImage.alt_text}
+                className="h-full w-full object-cover"
+                style={{
+                  objectPosition: "center top",
+                }}
+              />
+            ) : (
+              <div className="h-full w-full bg-light-grey/50 flex items-center justify-center">
+                <span className="text-muted-brown">Image</span>
+              </div>
+            )}
             {/* Overlay Content Card */}
             <div
               className="absolute bg-muted-beige"
@@ -321,7 +447,7 @@ export const WhyBestSection: React.FC = () => {
                   marginBottom: "12px",
                 }}
               >
-                Proven Effectiveness
+                {textOverlay1?.heading || fallbackTextOverlay1.heading}
               </p>
               <p
                 className="text-black"
@@ -336,7 +462,7 @@ export const WhyBestSection: React.FC = () => {
                   textAlign: "right",
                 }}
               >
-                Some stat to prove the same
+                {textOverlay1?.body || fallbackTextOverlay1.body}
               </p>
             </div>
           </div>
@@ -375,7 +501,7 @@ export const WhyBestSection: React.FC = () => {
                     marginBottom: "20px",
                   }}
                 >
-                  ECO FRIENDLY PACKAGING
+                  {textOverlay2?.heading || fallbackTextOverlay2.heading}
                 </h3>
                 <p
                   style={{
@@ -389,38 +515,40 @@ export const WhyBestSection: React.FC = () => {
                     color: "rgba(245, 237, 224, 0.68)",
                   }}
                 >
-                  Lorem sit officia sint esse veniam aliquip ullamco ea consequat
-                  aute consectetur exercitation quis do Lorem veniam mollit ut
-                  nostrud commodo aute
+                  {textOverlay2?.body || fallbackTextOverlay2.body}
                 </p>
               </div>
               {/* Product Image */}
-              <img
-                src="/eco-packaging.png"
-                alt="Eco friendly packaging"
-                style={{
-                  width: "748px",
-                  height: "546px",
-                  objectFit: "contain",
-                  position: "absolute",
-                  right: "0px",
-                  top: "-80px",
-                }}
-              />
+              {(ecoImage?.url || fallbackEcoImage.url) ? (
+                <img
+                  src={ecoImage?.url || fallbackEcoImage.url}
+                  alt={ecoImage?.alt_text || fallbackEcoImage.alt_text}
+                  style={{
+                    width: "748px",
+                    height: "546px",
+                    objectFit: "contain",
+                    position: "absolute",
+                    right: "0px",
+                    top: "-80px",
+                  }}
+                />
+              ) : (
+                <div className="absolute right-0 top-0 h-full w-1/2 bg-light-grey/20" />
+              )}
             </div>
 
             {/* Bottom Row - Product Spotlights */}
             <div className="flex gap-6">
               <ProductSpotlightCard
-                title="Product Spotlight"
-                price="₹700"
-                image="/spotlight-jar.png"
+                title={(product1 || fallbackProduct1).name}
+                price={`₹${(product1 || fallbackProduct1).pricing?.salePrice || 700}`}
+                image={(product1?.custom_image_url || product1?.primaryImage?.url || fallbackProduct1.primaryImage.url)}
                 imageSize={{ width: "305px", height: "305px" }}
               />
               <ProductSpotlightCard
-                title="Product Spotlight"
-                price="₹700"
-                image="/spotlight-tube.png"
+                title={(product2 || fallbackProduct2).name}
+                price={`₹${(product2 || fallbackProduct2).pricing?.salePrice || 700}`}
+                image={(product2?.custom_image_url || product2?.primaryImage?.url || fallbackProduct2.primaryImage.url)}
                 imageSize={{ width: "301px", height: "260px" }}
               />
             </div>
@@ -439,30 +567,31 @@ export const WhyBestSection: React.FC = () => {
             overflow: "hidden",
           }}
         >
+          {/* Background Image - from product_showcase API */}
           <img
-            src="/product-display.png"
-            alt="Product arrangement with serum and cream"
+            src={showcaseSection?.showcase_product?.image_url || "/product-display.png"}
+            alt="Product Display"
             style={{
-              width: "1367px",
-              height: "855px",
-              objectFit: "contain",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
               position: "absolute",
               left: "0",
               top: "0",
             }}
           />
 
-          {/* Floating Product Cards */}
+          {/* Floating Product Cards - using fetched products */}
           <FloatingProductCard
-            name="The Face Serum"
-            price="₹700-800"
-            image="/serum-small.png"
+            name={(product1 || fallbackProduct1).name}
+            price={`₹${(product1 || fallbackProduct1).pricing?.salePrice || 700}`}
+            image={(product1?.custom_image_url || product1?.primaryImage?.url || "/serum-small.png")}
             position={{ top: "80px", right: "200px" }}
           />
           <FloatingProductCard
-            name="The Hydrating Cream"
-            price="₹700-800"
-            image="/cream-small.png"
+            name={(product2 || fallbackProduct2).name}
+            price={`₹${(product2 || fallbackProduct2).pricing?.salePrice || 700}`}
+            image={(product2?.custom_image_url || product2?.primaryImage?.url || "/cream-small.png")}
             position={{ bottom: "200px", left: "100px" }}
           />
         </div>

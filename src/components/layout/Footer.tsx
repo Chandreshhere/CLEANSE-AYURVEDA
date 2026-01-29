@@ -1,6 +1,58 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { getNavigation, getCategories, type NavigationItem } from "@/lib/api/cms";
 
 export const Footer: React.FC = () => {
+  const [footerLinks, setFooterLinks] = useState<NavigationItem[]>([]);
+  const [legalLinks, setLegalLinks] = useState<NavigationItem[]>([]);
+  const [categories, setCategories] = useState<Array<{ name: string; slug: string }>>([]);
+
+  useEffect(() => {
+    const fetchFooterData = async () => {
+      try {
+        // Fetch navigation menus
+        const navResponse = await getNavigation();
+
+        if (navResponse.data && navResponse.data.length > 0) {
+          // Find footer menu
+          const footerMenu = navResponse.data.find((menu) => menu.location === 'footer');
+          if (footerMenu) {
+            setFooterLinks(footerMenu.items);
+          }
+
+          // Find footer secondary menu (legal links)
+          const legalMenu = navResponse.data.find((menu) => menu.location === 'footer_secondary');
+          if (legalMenu) {
+            setLegalLinks(legalMenu.items);
+          }
+        }
+
+        // Fetch categories
+        const catResponse = await getCategories();
+        if (catResponse.data?.categories && catResponse.data.categories.length > 0) {
+          const topLevelCategories = catResponse.data.categories
+            .filter((cat) => cat.level === 0)
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .map((cat) => ({
+              name: cat.name,
+              slug: cat.slug,
+            }));
+          setCategories(topLevelCategories);
+        }
+      } catch (err) {
+        console.error('Error fetching footer data:', err);
+      }
+    };
+
+    fetchFooterData();
+  }, []);
+
+  if (footerLinks.length === 0 && categories.length === 0) {
+    return null;
+  }
+
   return (
     <footer
       style={{
@@ -143,78 +195,82 @@ export const Footer: React.FC = () => {
         }}
       >
         {/* Categories */}
-        <div>
-          <h4
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 600,
-              fontSize: "14px",
-              lineHeight: "100%",
-              letterSpacing: "0.1em",
-              color: "#C9A86C",
-              marginBottom: "24px",
-            }}
-          >
-            CATEGORIES
-          </h4>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {["CATEGORY1", "CATEGORY2", "CATEGORY3"].map((item) => (
-              <li key={item} style={{ marginBottom: "16px" }}>
-                <a
-                  href="#"
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    lineHeight: "100%",
-                    letterSpacing: "0.05em",
-                    color: "#FFFFFF",
-                    textDecoration: "none",
-                  }}
-                >
-                  {item}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {categories.length > 0 && (
+          <div>
+            <h4
+              style={{
+                fontFamily: "Lexend, sans-serif",
+                fontWeight: 600,
+                fontSize: "14px",
+                lineHeight: "100%",
+                letterSpacing: "0.1em",
+                color: "#C9A86C",
+                marginBottom: "24px",
+              }}
+            >
+              CATEGORIES
+            </h4>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {categories.map((category) => (
+                <li key={category.slug} style={{ marginBottom: "16px" }}>
+                  <Link
+                    href={`/categories/${category.slug}`}
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      lineHeight: "100%",
+                      letterSpacing: "0.05em",
+                      color: "#FFFFFF",
+                      textDecoration: "none",
+                    }}
+                  >
+                    {category.name.toUpperCase()}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Pages */}
-        <div style={{ marginLeft: "120px" }}>
-          <h4
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 600,
-              fontSize: "14px",
-              lineHeight: "100%",
-              letterSpacing: "0.1em",
-              color: "#C9A86C",
-              marginBottom: "24px",
-            }}
-          >
-            PAGES
-          </h4>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {["ABOUT US", "PAGE 1", "PAGE 2", "PAGE 3"].map((item) => (
-              <li key={item} style={{ marginBottom: "16px" }}>
-                <a
-                  href="#"
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    lineHeight: "100%",
-                    letterSpacing: "0.05em",
-                    color: "#FFFFFF",
-                    textDecoration: "none",
-                  }}
-                >
-                  {item}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {footerLinks.length > 0 && (
+          <div style={{ marginLeft: "120px" }}>
+            <h4
+              style={{
+                fontFamily: "Lexend, sans-serif",
+                fontWeight: 600,
+                fontSize: "14px",
+                lineHeight: "100%",
+                letterSpacing: "0.1em",
+                color: "#C9A86C",
+                marginBottom: "24px",
+              }}
+            >
+              PAGES
+            </h4>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {footerLinks.map((link, index) => (
+                <li key={index} style={{ marginBottom: "16px" }}>
+                  <Link
+                    href={link.url || '#'}
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      lineHeight: "100%",
+                      letterSpacing: "0.05em",
+                      color: "#FFFFFF",
+                      textDecoration: "none",
+                    }}
+                  >
+                    {link.title.toUpperCase()}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Spacer */}
         <div style={{ flex: 1 }} />
@@ -288,38 +344,28 @@ export const Footer: React.FC = () => {
         >
           @2026 CLEANSE AYURVEDA . ALL RIGHTS RESERVED
         </p>
-        <div style={{ display: "flex", gap: "40px" }}>
-          <a
-            href="#"
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "14px",
-              lineHeight: "100%",
-              letterSpacing: "0.05em",
-              color: "#FFFFFF",
-              opacity: 0.6,
-              textDecoration: "none",
-            }}
-          >
-            TERMS OF SERVICE
-          </a>
-          <a
-            href="#"
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "14px",
-              lineHeight: "100%",
-              letterSpacing: "0.05em",
-              color: "#FFFFFF",
-              opacity: 0.6,
-              textDecoration: "none",
-            }}
-          >
-            PRIVACY POLICY
-          </a>
-        </div>
+        {legalLinks.length > 0 && (
+          <div style={{ display: "flex", gap: "40px" }}>
+            {legalLinks.map((link, index) => (
+              <Link
+                key={index}
+                href={link.url || '#'}
+                style={{
+                  fontFamily: "Lexend, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "14px",
+                  lineHeight: "100%",
+                  letterSpacing: "0.05em",
+                  color: "#FFFFFF",
+                  opacity: 0.6,
+                  textDecoration: "none",
+                }}
+              >
+                {link.title.toUpperCase()}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </footer>
   );

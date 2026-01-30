@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { getHomepageSections, type HomepageSection, type HomepageFeature } from "@/lib/api";
+import { Skeleton, FeatureCardSkeleton } from "@/components/ui";
 
 interface TrustFeatureProps {
   feature: HomepageFeature;
@@ -101,12 +102,26 @@ export const TrustSection: React.FC = () => {
   ];
 
   const features = sectionData?.features || defaultFeatures;
-  const backgroundColor = sectionData?.background_color || "#F5F1EB";
+  const backgroundColor = "#FCF6EB";
   const textColor = sectionData?.text_color || "#000000";
 
   return (
     <section className="w-full" style={{ backgroundColor }}>
       <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:justify-center lg:gap-16">
+            {/* Quote Card Skeleton */}
+            <Skeleton height="261px" width="399px" />
+
+            {/* Trust Features Skeleton */}
+            <div className="flex items-center justify-center gap-16" style={{ width: "879px", height: "225px" }}>
+              <FeatureCardSkeleton />
+              <FeatureCardSkeleton />
+              <FeatureCardSkeleton />
+            </div>
+          </div>
+        ) : (
+          <>
         {/* Optional Heading */}
         {sectionData?.heading && (
           <div className="mb-12 text-center">
@@ -216,6 +231,8 @@ export const TrustSection: React.FC = () => {
             }}
           />
         </div>
+        </>
+        )}
       </div>
     </section>
   );

@@ -9,45 +9,101 @@ import {
   ChevronDownIcon,
   MenuIcon,
   CloseIcon,
+  InlineSearch,
+  NavigationSkeleton,
 } from "@/components/ui";
-import { getNavigation, type Navigation, type NavigationItem } from "@/lib/api";
+import { getNavigation, getCategories, type Navigation, type NavigationItem, type Category } from "@/lib/api";
+import { useCart } from "@/context";
 
 export const MainHeader: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [isMobileCategoryOpen, setIsMobileCategoryOpen] = useState(false);
   const [navigationData, setNavigationData] = useState<Navigation | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { cartCount } = useCart();
 
   useEffect(() => {
-    const fetchNavigation = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        console.log('[MainHeader] Fetching main_header navigation from API...');
+        console.log('[MainHeader] Fetching navigation and categories from API...');
 
-        const response = await getNavigation('main_header');
+        // Fetch both navigation and categories in parallel
+        const [navigationResponse, categoriesResponse] = await Promise.all([
+          getNavigation('main_header'),
+          getCategories(),
+        ]);
 
-        if (response.data && response.data.length > 0) {
-          setNavigationData(response.data[0]);
+        if (navigationResponse.data && navigationResponse.data.length > 0) {
+          setNavigationData(navigationResponse.data[0]);
           console.log('[MainHeader] ✅ Successfully fetched navigation:', {
-            id: response.data[0]._id,
-            name: response.data[0].name,
-            location: response.data[0].location,
-            itemsCount: response.data[0].items.length,
+            id: navigationResponse.data[0]._id,
+            name: navigationResponse.data[0].name,
+            location: navigationResponse.data[0].location,
+            itemsCount: navigationResponse.data[0].items.length,
           });
-          console.log('[MainHeader] Navigation items:', response.data[0].items);
         } else {
           console.warn('[MainHeader] ⚠️ No navigation menus found in response');
         }
+
+        if (categoriesResponse.data && categoriesResponse.data.categories) {
+          setCategories(categoriesResponse.data.categories);
+          console.log('[MainHeader] ✅ Successfully fetched categories:', {
+            count: categoriesResponse.data.categories.length,
+          });
+        }
       } catch (error) {
-        console.error('[MainHeader] ❌ Failed to fetch navigation:', error);
+        console.error('[MainHeader] ❌ Failed to fetch data:', error);
       } finally {
         setIsLoading(false);
         console.log('[MainHeader] Loading complete');
       }
     };
 
-    fetchNavigation();
+    fetchData();
   }, []);
+
+  // Helper function to get shop URL for a category navigation item
+  const getCategoryShopUrl = (navItem: NavigationItem): string => {
+    // Flatten all categories including subcategories
+    const allCategories: Category[] = [];
+    categories.forEach((cat) => {
+      allCategories.push(cat);
+      if (cat.children) {
+        allCategories.push(...cat.children);
+      }
+    });
+
+    // Try to find a matching category by title (case-insensitive)
+    const matchedCategory = allCategories.find(
+      (cat) => cat.name.toLowerCase() === navItem.title.toLowerCase()
+    );
+
+    // If we found a match, return the shop URL with category slug
+    if (matchedCategory) {
+      return `/shop?category=${matchedCategory.slug}`;
+    }
+
+    // Fallback: if the URL already contains a category parameter, use it
+    if (navItem.url && navItem.url.includes('category=')) {
+      return navItem.url;
+    }
+
+    // Fallback: try to extract slug from URL path (e.g., /category/hair-care -> hair-care)
+    if (navItem.url) {
+      const urlParts = navItem.url.split('/').filter(Boolean);
+      if (urlParts.length > 0) {
+        const slug = urlParts[urlParts.length - 1];
+        return `/shop?category=${slug}`;
+      }
+    }
+
+    // Last fallback: use the URL as-is or default to shop
+    return navItem.url || '/shop';
+  };
 
   // Fallback categories if API fails
   const fallbackCategories = [
@@ -62,7 +118,7 @@ export const MainHeader: React.FC = () => {
 
   // Find category dropdown item (item with children)
   const categoryDropdownItem = navigationItems.find((item) => item.children && item.children.length > 0);
-  const categories = categoryDropdownItem?.children || fallbackCategories;
+  const categoryMenuItems = categoryDropdownItem?.children || fallbackCategories;
 
   return (
     <header className="w-full" style={{ backgroundColor: "#ECCFA0" }}>
@@ -78,7 +134,10 @@ export const MainHeader: React.FC = () => {
         <div className="flex items-center justify-between" style={{ height: "120px" }}>
           {/* Left Navigation */}
           <nav className="hidden items-center lg:flex" style={{ gap: "48px", flex: 1 }}>
-            {navigationItems.map((item, index) => (
+            {isLoading ? (
+              <NavigationSkeleton />
+            ) : (
+            navigationItems.map((item, index) => (
               item.children && item.children.length > 0 ? (
                 // Render dropdown for items with children
                 <div key={`nav-item-${index}`} style={{ position: "relative" }}>
@@ -126,7 +185,7 @@ export const MainHeader: React.FC = () => {
                         {item.children.map((child, childIndex) => (
                           <Link
                             key={`child-${index}-${childIndex}`}
-                            href={child.url || '#'}
+                            href={getCategoryShopUrl(child)}
                             onClick={() => setIsCategoryDropdownOpen(false)}
                             style={{
                               fontFamily: "Lexend, sans-serif",
@@ -166,7 +225,8 @@ export const MainHeader: React.FC = () => {
                   {item.title}
                 </Link>
               )
-            ))}
+            ))
+            )}
 
             {/* Fallback navigation if no data loaded */}
             {navigationItems.length === 0 && !isLoading && (
@@ -217,7 +277,7 @@ export const MainHeader: React.FC = () => {
                         position: "absolute",
                         top: "calc(100% + 20px)",
                         left: "0",
-                        width: "235px",
+                        minWidth: "235px",
                         backgroundColor: "#4A2B1F",
                         borderRadius: "0",
                         padding: "24px 32px",
@@ -294,11 +354,41 @@ export const MainHeader: React.FC = () => {
             >
               <ProfileIcon size={24} />
             </Link>
-            <button className="text-dark-brown" aria-label="Search">
-              <SearchIcon size={24} />
-            </button>
-            <Link href="/cart" className="text-dark-brown" aria-label="Cart">
+            {isSearchOpen ? (
+              <InlineSearch onClose={() => setIsSearchOpen(false)} />
+            ) : (
+              <button
+                className="text-dark-brown"
+                aria-label="Search"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <SearchIcon size={24} />
+              </button>
+            )}
+            <Link href="/cart" className="text-dark-brown relative" aria-label="Cart">
               <CartIcon size={24} />
+              {cartCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-8px",
+                    right: "-8px",
+                    backgroundColor: "#4A2B1F",
+                    color: "#FFFFFF",
+                    borderRadius: "50%",
+                    width: "20px",
+                    height: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    fontFamily: "Lexend, sans-serif",
+                  }}
+                >
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>

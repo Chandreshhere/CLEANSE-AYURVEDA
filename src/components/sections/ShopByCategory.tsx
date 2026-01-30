@@ -16,9 +16,10 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ name, image, slug }) => {
   const isHairCare = name.toLowerCase().includes('hair');
   const isFaceCare = name.toLowerCase().includes('face');
 
-  const imageBottom = isSkinCare ? "-90px" : isHairCare ? "-5px" : isFaceCare ? "-5px" : "-17px";
+  const imageBottom = isSkinCare ? "-25px" : isHairCare ? "-13px" : isFaceCare ? "-20px" : "-3px";
   const imageRight = isSkinCare ? "-5px" : "-40px";
   const imageWidth = isSkinCare ? "360px" : "280px";
+  const imageHeight = isSkinCare ? "320px" : isFaceCare ? "380px" : "280px";
 
   return (
     <Link href={`/categories/${slug}`}>
@@ -28,7 +29,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ name, image, slug }) => {
           width: "446px",
           height: "183px",
           borderRadius: "20px",
-          overflow: "hidden",
+          overflow: "visible",
         }}
       >
         <span
@@ -55,7 +56,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ name, image, slug }) => {
           className="absolute"
           style={{
             width: imageWidth,
-            height: imageWidth,
+            height: imageHeight,
             objectFit: "contain",
             objectPosition: "bottom right",
             right: imageRight,
@@ -73,7 +74,10 @@ export const ShopByCategory: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        console.log('[ShopByCategory] Fetching categories from API...');
         const response = await getCategories();
+
+        console.log('[ShopByCategory] Raw API response:', response);
 
         if (response.data?.categories && response.data.categories.length > 0) {
           const topLevelCategories = response.data.categories
@@ -85,6 +89,7 @@ export const ShopByCategory: React.FC = () => {
               slug: cat.slug,
             }));
 
+          console.log('[ShopByCategory] Mapped categories:', topLevelCategories);
           setCategories(topLevelCategories);
         }
       } catch (err) {
@@ -95,13 +100,10 @@ export const ShopByCategory: React.FC = () => {
     fetchCategories();
   }, []);
 
-  if (categories.length === 0) {
-    return null;
-  }
-
+  // Always render section to avoid hydration mismatch
   return (
-    <section className="w-full bg-off-white">
-      <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
+    <section className="w-full" style={{ backgroundColor: "#FCF6EB" }}>
+      <div className="mx-auto max-w-[1920px] px-4 pt-8 pb-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:pt-12 lg:pb-24 xl:px-32">
         {/* Section Heading */}
         <h2
           className="mx-auto mb-16 text-center text-black"
@@ -121,14 +123,32 @@ export const ShopByCategory: React.FC = () => {
 
         {/* Category Cards */}
         <div className="flex justify-center gap-8">
-          {categories.map((category) => (
-            <CategoryCard
-              key={category.name}
-              name={category.name}
-              image={category.image}
-              slug={category.slug}
-            />
-          ))}
+          {categories.length > 0 ? (
+            categories.map((category) => (
+              <CategoryCard
+                key={category.name}
+                name={category.name}
+                image={category.image}
+                slug={category.slug}
+              />
+            ))
+          ) : (
+            // Loading skeleton
+            <>
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse"
+                  style={{
+                    width: "446px",
+                    height: "183px",
+                    backgroundColor: "#E5E5E5",
+                    borderRadius: "20px",
+                  }}
+                />
+              ))}
+            </>
+          )}
         </div>
       </div>
     </section>

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { getHomepageSections, type HomepageSection } from "@/lib/api";
+import { Skeleton } from "@/components/ui";
 
 export const ProductShowcase: React.FC = () => {
   const [sectionData, setSectionData] = useState<HomepageSection | null>(null);
@@ -41,19 +42,33 @@ export const ProductShowcase: React.FC = () => {
     setImageError(true);
   };
 
-  // Don't render if no data
-  if (!sectionData?.showcase_product) {
+  // Don't render if no data and not loading
+  if (!sectionData?.showcase_product && !isLoading) {
     return null;
   }
 
-  const { showcase_product } = sectionData;
-  const backgroundColor = sectionData.background_color || "#FFFFFF";
-  const textColor = sectionData.text_color || "#000000";
-  const isImageLeft = showcase_product.layout === "image_left";
+  const { showcase_product } = sectionData || {};
+  const backgroundColor = sectionData?.background_color || "#FFFFFF";
+  const textColor = sectionData?.text_color || "#000000";
+  const isImageLeft = showcase_product?.layout === "image_left";
 
   return (
     <section className="w-full" style={{ backgroundColor }}>
       <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
+        {isLoading ? (
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+            <div className="w-full lg:w-1/2">
+              <Skeleton height="600px" width="100%" />
+            </div>
+            <div className="w-full lg:w-1/2 space-y-4">
+              <Skeleton height="52px" width="80%" />
+              <Skeleton height="40px" width="60%" />
+              <Skeleton height="100px" width="90%" />
+              <Skeleton height="56px" width="200px" />
+            </div>
+          </div>
+        ) : (
+          <>
         <div className={`flex flex-col lg:flex-row items-center gap-12 lg:gap-16 ${isImageLeft ? '' : 'lg:flex-row-reverse'}`}>
           {/* Product Image */}
           <div className="w-full lg:w-1/2">
@@ -140,6 +155,8 @@ export const ProductShowcase: React.FC = () => {
             )}
           </div>
         </div>
+        </>
+        )}
       </div>
     </section>
   );

@@ -310,12 +310,9 @@ export const TestimonialsSection: React.FC = () => {
     setCurrentIndex((prev) => (prev < testimonials.length - 3 ? prev + 1 : 0));
   };
 
-  if (testimonials.length === 0 && !banner && !featuresSection) {
-    return null;
-  }
-
+  // Always render section to avoid hydration mismatch
   return (
-    <section className="w-full bg-off-white" style={{ overflow: "hidden" }}>
+    <section className="w-full" style={{ backgroundColor: "#FCF6EB", overflow: "hidden" }}>
       <div
         style={{
           paddingTop: "64px",

@@ -174,12 +174,9 @@ export const BlogSection: React.FC = () => {
     fetchBlogs();
   }, []);
 
-  if (blogs.length === 0) {
-    return null;
-  }
-
+  // Always render section to avoid hydration mismatch
   return (
-    <section className="w-full bg-off-white">
+    <section className="w-full" style={{ backgroundColor: "#FCF6EB" }}>
       <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
         {/* Section Header */}
         <div className="mb-12 text-center">
@@ -222,16 +219,51 @@ export const BlogSection: React.FC = () => {
 
         {/* Blog Cards */}
         <div className="flex justify-center gap-6">
-          {blogs.map((blog, index) => (
-            <BlogCard
-              key={index}
-              image={blog.image}
-              category={blog.category}
-              title={blog.title}
-              description={blog.description}
-              slug={blog.slug}
-            />
-          ))}
+          {blogs.length > 0 ? (
+            blogs.map((blog, index) => (
+              <BlogCard
+                key={index}
+                image={blog.image}
+                category={blog.category}
+                title={blog.title}
+                description={blog.description}
+                slug={blog.slug}
+              />
+            ))
+          ) : (
+            // Loading skeleton
+            <>
+              {[1, 2].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div
+                    style={{
+                      width: "679px",
+                      height: "469px",
+                      backgroundColor: "#E5E5E5",
+                      borderRadius: "12px",
+                    }}
+                  />
+                  <div style={{ marginTop: "16px" }}>
+                    <div
+                      style={{
+                        width: "96px",
+                        height: "27px",
+                        backgroundColor: "#E5E5E5",
+                      }}
+                    />
+                    <div
+                      style={{
+                        width: "666px",
+                        height: "71px",
+                        backgroundColor: "#E5E5E5",
+                        marginTop: "12px",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         {/* View All Blogs Link */}

@@ -247,7 +247,7 @@ export async function getHomepageSections(
     if (sectionType) params.append('section_type', sectionType);
     if (isActive !== undefined) params.append('is_active', isActive.toString());
 
-    const url = `${API_BASE_URL}/api/cms/homepage-sections${params.toString() ? `?${params.toString()}` : ''}`;
+    const url = `${API_BASE_URL}/api/homepage-sections${params.toString() ? `?${params.toString()}` : ''}`;
 
     console.log('[API] 🔄 Fetching homepage sections:', { sectionType, isActive, url });
 
@@ -893,5 +893,950 @@ export async function getReels(limit: number = 20): Promise<ReelsResponse> {
       data: [],
       error: error instanceof Error ? error.message : 'Unknown error',
     };
+  }
+}
+
+// Search Types
+export interface SearchProduct {
+  _id: string;
+  name: string;
+  slug: string;
+  shortDescription: string | null;
+  primaryImage: string | null;
+  pricing: {
+    mrp: number;
+    salePrice: number;
+  };
+  ratingSummary: {
+    average: number;
+    count: number;
+  };
+  brand: {
+    _id: string;
+    name: string;
+    slug: string;
+  };
+}
+
+export interface SearchFacets {
+  categories: Array<{ _id: string; name: string; count: number }>;
+  brands: Array<{ _id: string; name: string; count: number }>;
+  priceRanges: Array<{ min: number; max: number; count: number }>;
+}
+
+export interface SearchResponse {
+  message: string;
+  data: {
+    query: string;
+    products: SearchProduct[];
+    facets: SearchFacets;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+  error: null | string;
+}
+
+export interface SearchSuggestion {
+  type: 'category' | 'product' | 'brand';
+  text: string;
+  slug: string;
+}
+
+export interface SuggestionsResponse {
+  message: string;
+  data: {
+    suggestions: SearchSuggestion[];
+  };
+  error: null | string;
+}
+
+export interface SearchParams {
+  q: string;
+  category?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  skinType?: string | string[];
+  rating?: number;
+  sort?: 'relevance' | 'price_asc' | 'price_desc' | 'rating' | 'newest';
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * Full-text product search
+ * @param params - Search parameters
+ */
+export async function searchProducts(params: SearchParams): Promise<SearchResponse> {
+  try {
+    const searchParams = new URLSearchParams();
+    searchParams.append('q', params.q);
+
+    if (params.category) searchParams.append('category', params.category);
+    if (params.brand) searchParams.append('brand', params.brand);
+    if (params.minPrice !== undefined) searchParams.append('minPrice', params.minPrice.toString());
+    if (params.maxPrice !== undefined) searchParams.append('maxPrice', params.maxPrice.toString());
+    if (params.skinType) {
+      if (Array.isArray(params.skinType)) {
+        params.skinType.forEach(type => searchParams.append('skinType', type));
+      } else {
+        searchParams.append('skinType', params.skinType);
+      }
+    }
+    if (params.rating !== undefined) searchParams.append('rating', params.rating.toString());
+    if (params.sort) searchParams.append('sort', params.sort);
+    if (params.page !== undefined) searchParams.append('page', params.page.toString());
+    if (params.limit !== undefined) searchParams.append('limit', params.limit.toString());
+
+    const url = `${API_BASE_URL}/api/catalog/search?${searchParams.toString()}`;
+
+    console.log('[API] 🔄 Searching products:', { params, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Search API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to search products: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Search completed successfully:', {
+      count: data.data?.products?.length || 0,
+      total: data.data?.pagination?.total || 0,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error searching products:', error);
+    return {
+      message: 'Error searching products',
+      data: {
+        query: params.q,
+        products: [],
+        facets: {
+          categories: [],
+          brands: [],
+          priceRanges: [],
+        },
+        pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+      },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get search suggestions (autocomplete)
+ * @param query - Partial search query
+ * @param limit - Number of suggestions (default: 5, max: 10)
+ */
+export async function getSearchSuggestions(
+  query: string,
+  limit: number = 5
+): Promise<SuggestionsResponse> {
+  try {
+    const params = new URLSearchParams();
+    params.append('q', query);
+    params.append('limit', Math.min(limit, 10).toString());
+
+    const url = `${API_BASE_URL}/api/catalog/search/suggestions?${params.toString()}`;
+
+    console.log('[API] 🔄 Fetching search suggestions:', { query, limit, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Suggestions API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch suggestions: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Suggestions fetched successfully:', {
+      count: data.data?.suggestions?.length || 0,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching suggestions:', error);
+    return {
+      message: 'Error fetching suggestions',
+      data: {
+        suggestions: [],
+      },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+// Product Detail Types
+export interface ProductVariant {
+  _id: string;
+  name: string;
+  sku: string;
+  variantType: string | null;
+  mrp: number;
+  salePrice: number;
+  discountPercent: number;
+  weight: number;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+export interface ProductImage {
+  _id?: string;
+  type: string;
+  url: string;
+  altText: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+export interface ProductDetail {
+  _id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  description: string;
+  shortDescription: string;
+  benefits: string[];
+  howToUse: string;
+  brand: {
+    _id: string;
+    name: string;
+    slug: string;
+  };
+  productType: string;
+  status: string;
+  isFeatured: boolean;
+  isBestseller: boolean;
+  isNewArrival: boolean;
+  tags: string[];
+  attributes: {
+    skinType: string[];
+    concerns: string[];
+  };
+  ratingSummary: {
+    average: number;
+    count: number;
+  };
+  primaryImage: {
+    url: string;
+    altText: string;
+  };
+  pricing: {
+    mrp: number;
+    salePrice: number;
+    discountPercent: number;
+  };
+  categories: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+    isPrimary: boolean;
+  }>;
+}
+
+export interface StockAvailability {
+  sku: string;
+  status: string;
+  isAvailable: boolean;
+  availableQuantity: number;
+  lowStockWarning: boolean;
+  allowBackorder: boolean;
+}
+
+export interface Bundle {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  image: {
+    url: string;
+    publicId: string;
+  };
+  originalPrice: number;
+  finalPrice: number;
+  savings: number;
+  validFrom: string;
+  validTo: string;
+  items?: Array<{
+    _id: string;
+    product: {
+      _id: string;
+      name: string;
+      slug: string;
+      primaryImage: {
+        url: string;
+        altText: string;
+      };
+    };
+    variant: {
+      _id: string;
+      name: string;
+      sku: string;
+      mrp: number;
+      salePrice: number;
+    };
+    quantity: number;
+    itemTotal: number;
+    sortOrder: number;
+  }>;
+}
+
+export interface RelatedProducts {
+  crossSell: Product[];
+  upSell: Product[];
+  frequentlyBoughtTogether: Product[];
+}
+
+export interface Review {
+  _id: string;
+  rating: number;
+  title: string;
+  content: string;
+  images: Array<{
+    url: string;
+    publicId: string;
+  }>;
+  isVerifiedPurchase: boolean;
+  isFeatured: boolean;
+  helpfulCount: number;
+  adminResponse: string | null;
+  adminResponseAt: string | null;
+  createdAt: string;
+  user: {
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export interface ReviewsResponse {
+  message: string;
+  data: {
+    reviews: Review[];
+    stats: {
+      averageRating: number;
+      totalReviews: number;
+      distribution: {
+        [key: string]: number;
+      };
+    };
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  };
+  error: null | string;
+}
+
+export interface Ingredient {
+  _id: string;
+  ingredient: {
+    _id: string;
+    name: string;
+    slug: string;
+    benefits: string[];
+    image: {
+      url: string;
+      altText: string;
+    };
+  };
+  percentage: number;
+  isKeyIngredient: boolean;
+  sortOrder: number;
+}
+
+/**
+ * Get product by slug
+ * @param slug - Product slug
+ */
+export async function getProductBySlug(slug: string): Promise<{ message: string; data: { product: ProductDetail }; error: null | string }> {
+  try {
+    const url = `${API_BASE_URL}/api/catalog/products/${slug}`;
+
+    console.log('[API] 🔄 Fetching product:', { slug, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Product API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch product: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Product fetched successfully:', {
+      name: data.data?.product?.name,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching product:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get product variants
+ * @param slug - Product slug
+ */
+export async function getProductVariants(slug: string): Promise<{ message: string; data: { variants: ProductVariant[] }; error: null | string }> {
+  try {
+    const url = `${API_BASE_URL}/api/catalog/products/${slug}/variants`;
+
+    console.log('[API] 🔄 Fetching product variants:', { slug, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Variants API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch variants: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Variants fetched successfully:', {
+      count: data.data?.variants?.length || 0,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching variants:', error);
+    return {
+      message: 'Error fetching variants',
+      data: { variants: [] },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Check stock availability
+ * @param variantId - Variant ID
+ */
+export async function checkStockAvailability(variantId: string): Promise<{ message: string; data: StockAvailability; error: null | string }> {
+  try {
+    const url = `${API_BASE_URL}/api/inventory/stock/check/${variantId}`;
+
+    console.log('[API] 🔄 Checking stock:', { variantId, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Stock check API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to check stock: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Stock checked successfully:', {
+      isAvailable: data.data?.isAvailable,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error checking stock:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get product media/photos
+ * @param slug - Product slug
+ */
+export async function getProductMedia(slug: string): Promise<{ message: string; data: { media: ProductImage[] }; error: null | string }> {
+  try {
+    const url = `${API_BASE_URL}/api/catalog/products/${slug}/media`;
+
+    console.log('[API] 🔄 Fetching product media:', { slug, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Media API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch media: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Media fetched successfully:', {
+      count: data.data?.media?.length || 0,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching media:', error);
+    return {
+      message: 'Error fetching media',
+      data: { media: [] },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get all bundles
+ * @param limit - Number of bundles to fetch
+ */
+export async function getBundles(limit: number = 20): Promise<{ message: string; data: { bundles: Bundle[] }; error: null | string }> {
+  try {
+    const url = `${API_BASE_URL}/api/catalog/bundles?limit=${Math.min(limit, 50)}`;
+
+    console.log('[API] 🔄 Fetching bundles:', { limit, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Bundles API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch bundles: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Bundles fetched successfully:', {
+      count: data.data?.bundles?.length || 0,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching bundles:', error);
+    return {
+      message: 'Error fetching bundles',
+      data: { bundles: [] },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get bundle details
+ * @param slug - Bundle slug
+ */
+export async function getBundleBySlug(slug: string): Promise<{ message: string; data: { bundle: Bundle }; error: null | string }> {
+  try {
+    const url = `${API_BASE_URL}/api/catalog/bundles/${slug}`;
+
+    console.log('[API] 🔄 Fetching bundle:', { slug, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Bundle API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch bundle: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Bundle fetched successfully:', {
+      name: data.data?.bundle?.name,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching bundle:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get related products
+ * @param slug - Product slug
+ * @param type - Type of related products
+ * @param limit - Number of products per type
+ */
+export async function getRelatedProducts(
+  slug: string,
+  type?: string,
+  limit: number = 10
+): Promise<{ message: string; data: { related: RelatedProducts }; error: null | string }> {
+  try {
+    const params = new URLSearchParams();
+    if (type) params.append('type', type);
+    params.append('limit', Math.min(limit, 20).toString());
+
+    const url = `${API_BASE_URL}/api/catalog/products/${slug}/related?${params.toString()}`;
+
+    console.log('[API] 🔄 Fetching related products:', { slug, type, limit, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Related products API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch related products: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Related products fetched successfully:', {
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching related products:', error);
+    return {
+      message: 'Error fetching related products',
+      data: {
+        related: {
+          crossSell: [],
+          upSell: [],
+          frequentlyBoughtTogether: [],
+        },
+      },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get product reviews
+ * @param productId - Product ID
+ * @param page - Page number
+ * @param limit - Reviews per page
+ * @param rating - Filter by rating
+ * @param sortBy - Sort order
+ * @param order - asc or desc
+ */
+export async function getProductReviews(
+  productId: string,
+  page: number = 1,
+  limit: number = 20,
+  rating?: number,
+  sortBy: string = 'createdAt',
+  order: string = 'desc'
+): Promise<ReviewsResponse> {
+  try {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (rating) params.append('rating', rating.toString());
+    params.append('sortBy', sortBy);
+    params.append('order', order);
+
+    const url = `${API_BASE_URL}/api/engagement/products/${productId}/reviews?${params.toString()}`;
+
+    console.log('[API] 🔄 Fetching product reviews:', { productId, page, limit, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[API] ⚠️ Reviews API not available:', {
+          status: response.status,
+          statusText: response.statusText,
+        });
+      }
+      // Return graceful error response instead of throwing
+      return {
+        message: 'Reviews not available',
+        data: {
+          reviews: [],
+          stats: {
+            averageRating: 0,
+            totalReviews: 0,
+            distribution: {},
+          },
+          pagination: {
+            total: 0,
+            page: 1,
+            limit: 20,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPrevPage: false,
+          },
+        },
+        error: `Reviews API returned ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Reviews fetched successfully:', {
+      count: data.data?.reviews?.length || 0,
+      total: data.data?.stats?.totalReviews || 0,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[API] ⚠️ Error fetching reviews:', error);
+    }
+    return {
+      message: 'Error fetching reviews',
+      data: {
+        reviews: [],
+        stats: {
+          averageRating: 0,
+          totalReviews: 0,
+          distribution: {},
+        },
+        pagination: {
+          total: 0,
+          page: 1,
+          limit: 20,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get product ingredients
+ * @param slug - Product slug
+ */
+export async function getProductIngredients(slug: string): Promise<{ message: string; data: { ingredients: Ingredient[] }; error: null | string }> {
+  try {
+    const url = `${API_BASE_URL}/api/catalog/products/${slug}/ingredients`;
+
+    console.log('[API] 🔄 Fetching product ingredients:', { slug, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Ingredients API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch ingredients: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Ingredients fetched successfully:', {
+      count: data.data?.ingredients?.length || 0,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching ingredients:', error);
+    return {
+      message: 'Error fetching ingredients',
+      data: { ingredients: [] },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get products by category slug
+ * @param categorySlug - Category slug
+ * @param page - Page number
+ * @param limit - Products per page
+ */
+export async function getProductsByCategory(
+  categorySlug: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  message: string;
+  data: {
+    category: { _id: string; name: string; slug: string };
+    products: Product[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  };
+  error: null | string;
+}> {
+  try {
+    const url = `${API_BASE_URL}/api/catalog/categories/${categorySlug}/products?page=${page}&limit=${limit}`;
+
+    console.log('[API] 🔄 Fetching products by category:', { categorySlug, page, limit, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ Category products API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch category products: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ Category products fetched successfully:', {
+      category: data.data?.category?.name,
+      count: data.data?.products?.length || 0,
+      total: data.data?.pagination?.total || 0,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching category products:', error);
+    return {
+      message: 'Error fetching category products',
+      data: {
+        category: { _id: '', name: '', slug: categorySlug },
+        products: [],
+        pagination: {
+          total: 0,
+          page: 1,
+          limit: 10,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Get CMS page by slug
+ * @param slug - Page slug
+ */
+export async function getCMSPage(slug: string): Promise<{ message: string; data: { page: any }; error: null | string }> {
+  try {
+    const url = `${API_BASE_URL}/api/cms/pages/${slug}`;
+
+    console.log('[API] 🔄 Fetching CMS page:', { slug, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('[API] ❌ CMS page API failed:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(`Failed to fetch CMS page: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('[API] ✅ CMS page fetched successfully:', {
+      title: data.data?.page?.title,
+      message: data.message,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching CMS page:', error);
+    throw error;
   }
 }

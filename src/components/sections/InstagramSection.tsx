@@ -80,17 +80,14 @@ export const InstagramSection: React.FC = () => {
     fetchReels();
   }, []);
 
-  if (reels.length === 0) {
-    return null;
-  }
-
+  // Always render section to avoid hydration mismatch
   return (
     <section
       className="bg-off-white"
       style={{
         width: "100%",
-        paddingTop: "120px",
-        paddingBottom: "200px",
+        paddingTop: "0px",
+        paddingBottom: "0px",
       }}
     >
       {/* Green Background Container */}
@@ -171,9 +168,27 @@ export const InstagramSection: React.FC = () => {
             gap: "24px",
           }}
         >
-          {reels.map((reel, index) => (
-            <ImageBox key={index} image={reel.src} alt={reel.alt} />
-          ))}
+          {reels.length > 0 ? (
+            reels.map((reel, index) => (
+              <ImageBox key={index} image={reel.src} alt={reel.alt} />
+            ))
+          ) : (
+            // Loading skeleton
+            <>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse"
+                  style={{
+                    width: "208px",
+                    height: "208px",
+                    backgroundColor: "#B8C5B4",
+                    borderRadius: "8px",
+                  }}
+                />
+              ))}
+            </>
+          )}
         </div>
       </div>
       </div>

@@ -25,11 +25,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   rating,
   reviewsCount,
 }) => {
-  const { openCartDrawer } = useCart();
+  const { addToCart, openCartDrawer } = useCart();
   const [imageError, setImageError] = React.useState(false);
 
   const handleQuickAdd = () => {
-    // Add item to cart logic would go here
+    // Add item to cart
+    addToCart({
+      productId: String(id),
+      slug: String(id),
+      name,
+      image,
+      price,
+      mrp,
+    });
+
+    // Open cart drawer to show the item was added
     openCartDrawer();
   };
 
@@ -70,18 +80,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </Link>
 
       {/* Product Info - Not clickable */}
-      <div className="mt-4 flex flex-col">
+      <div className="mt-4 flex flex-col" style={{ width: "329px" }}>
         {/* Product Name */}
         <h3
           className="text-black"
           style={{
-            width: "213px",
-            height: "45px",
             fontFamily: "Lexend, sans-serif",
             fontWeight: 700,
             fontSize: "24px",
-            lineHeight: "100%",
+            lineHeight: "120%",
             letterSpacing: "0",
+            minHeight: "29px",
+            marginBottom: "8px",
           }}
         >
           {name}
@@ -91,13 +101,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <p
           className="text-black"
           style={{
-            width: "305px",
-            height: "43px",
             fontFamily: "Inter, sans-serif",
             fontWeight: 400,
-            fontSize: "20px",
-            lineHeight: "100%",
+            fontSize: "18px",
+            lineHeight: "140%",
             letterSpacing: "0",
+            minHeight: "25px",
+            marginBottom: "8px",
           }}
         >
           {description}

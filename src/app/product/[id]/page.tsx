@@ -1,11 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { TopUtilityBar, MainHeader, Footer } from "@/components/layout";
 import { useCart } from "@/context";
+import { Skeleton, ProductCardSkeleton } from "@/components/ui";
+import {
+  getProductBySlug,
+  getProductVariants,
+  getProductMedia,
+  getBundles,
+  getRelatedProducts,
+  getProductReviews,
+  getProductIngredients,
+  checkStockAvailability,
+  type ProductDetail,
+  type ProductVariant,
+  type ProductImage,
+  type Bundle,
+  type Review,
+  type Ingredient,
+  type Product,
+} from "@/lib/api";
 
 export default function ProductPage() {
-  const [selectedSize, setSelectedSize] = useState("100 ML");
+  const params = useParams();
+  const productId = params?.id as string;
+
+  // Product data state
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [media, setMedia] = useState<ProductImage[]>([]);
+  const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewStats, setReviewStats] = useState<any>(null);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [stockInfo, setStockInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // UI state
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState("");
   const [activeTab, setActiveTab] = useState("our-values");
@@ -16,12 +52,193 @@ export default function ProductPage() {
   const [reviewTitle, setReviewTitle] = useState("");
   const [reviewDetails, setReviewDetails] = useState("");
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
-  const { openCartDrawer } = useCart();
+  const [selectedImage, setSelectedImage] = useState<ProductImage | null>(null);
+
+  const { addToCart, openCartDrawer } = useCart();
+
+  // Fetch product data
+  useEffect(() => {
+    const fetchProductData = async () => {
+      if (!productId) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch product details
+        const productResponse = await getProductBySlug(productId);
+        const productData = productResponse.data.product;
+        setProduct(productData);
+
+        // Fetch variants
+        const variantsResponse = await getProductVariants(productId);
+        setVariants(variantsResponse.data.variants);
+
+        // Set default variant
+        const defaultVariant = variantsResponse.data.variants.find(v => v.isDefault) || variantsResponse.data.variants[0];
+        setSelectedVariant(defaultVariant);
+
+        // Check stock for default variant
+        if (defaultVariant) {
+          const stockResponse = await checkStockAvailability(defaultVariant._id);
+          setStockInfo(stockResponse.data);
+        }
+
+        // Fetch media
+        const mediaResponse = await getProductMedia(productId);
+        const mediaData = mediaResponse.data.media;
+        setMedia(mediaData);
+        setSelectedImage(mediaData.find(m => m.isPrimary) || mediaData[0] || null);
+
+        // Fetch bundles
+        const bundlesResponse = await getBundles(3);
+        setBundles(bundlesResponse.data.bundles);
+
+        // Fetch related products
+        const relatedResponse = await getRelatedProducts(productId, undefined, 4);
+        const allRelated = [
+          ...relatedResponse.data.related.crossSell,
+          ...relatedResponse.data.related.upSell,
+          ...relatedResponse.data.related.frequentlyBoughtTogether,
+        ].slice(0, 4);
+        setRelatedProducts(allRelated);
+
+        // Fetch reviews (with error handling)
+        try {
+          console.log('[ProductPage] Fetching reviews for product:', productData._id);
+          const reviewsResponse = await getProductReviews(productData._id, 1, 10);
+          setReviews(reviewsResponse.data.reviews);
+          setReviewStats(reviewsResponse.data.stats);
+        } catch (reviewError) {
+          console.error('[ProductPage] Failed to fetch reviews, continuing without them:', reviewError);
+          setReviews([]);
+          setReviewStats(null);
+        }
+
+        // Fetch ingredients (with error handling)
+        try {
+          const ingredientsResponse = await getProductIngredients(productId);
+          setIngredients(ingredientsResponse.data.ingredients);
+        } catch (ingredientsError) {
+          console.error('[ProductPage] Failed to fetch ingredients, continuing without them:', ingredientsError);
+          setIngredients([]);
+        }
+
+      } catch (err) {
+        console.error('Error fetching product data:', err);
+        setError('Failed to load product data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductData();
+  }, [productId]);
+
+  // Update stock when variant changes
+  useEffect(() => {
+    const fetchStock = async () => {
+      if (selectedVariant) {
+        try {
+          const stockResponse = await checkStockAvailability(selectedVariant._id);
+          setStockInfo(stockResponse.data);
+        } catch (err) {
+          console.error('Error fetching stock:', err);
+        }
+      }
+    };
+
+    fetchStock();
+  }, [selectedVariant]);
 
   const handleAddToCart = () => {
-    // Add item to cart logic would go here
+    if (!product) return;
+
+    const currentPrice = selectedVariant?.salePrice || product.pricing.salePrice;
+    const currentMRP = selectedVariant?.mrp || product.pricing.mrp;
+
+    // Add item to cart with selected variant and quantity
+    addToCart({
+      productId: product._id,
+      slug: product.slug,
+      name: product.name,
+      image: product.primaryImage?.url,
+      price: currentPrice,
+      mrp: currentMRP,
+      variantId: selectedVariant?._id,
+      variantName: selectedVariant?.name,
+      quantity: quantity,
+    });
+
+    // Open cart drawer to show the item was added
     openCartDrawer();
   };
+
+  const handleVariantChange = (variant: ProductVariant) => {
+    setSelectedVariant(variant);
+  };
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#F5F1EB" }}>
+        <TopUtilityBar />
+        <MainHeader />
+        <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
+          {/* Product Detail Skeleton */}
+          <div className="flex flex-col lg:flex-row gap-12 mb-20">
+            {/* Left - Image Gallery */}
+            <div className="w-full lg:w-1/2 space-y-4">
+              <Skeleton height="600px" width="100%" />
+              <div className="flex gap-4">
+                <Skeleton height="100px" width="100px" />
+                <Skeleton height="100px" width="100px" />
+                <Skeleton height="100px" width="100px" />
+                <Skeleton height="100px" width="100px" />
+              </div>
+            </div>
+
+            {/* Right - Product Info */}
+            <div className="w-full lg:w-1/2 space-y-6">
+              <Skeleton height="40px" width="80%" />
+              <Skeleton height="32px" width="40%" />
+              <Skeleton height="24px" width="60%" />
+              <Skeleton height="120px" width="100%" />
+              <Skeleton height="56px" width="200px" />
+              <Skeleton height="56px" width="100%" />
+            </div>
+          </div>
+
+          {/* Related Products Skeleton */}
+          <div className="space-y-8">
+            <Skeleton height="48px" width="300px" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <ProductCardSkeleton />
+              <ProductCardSkeleton />
+              <ProductCardSkeleton />
+              <ProductCardSkeleton />
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center" style={{ backgroundColor: "#F5F1EB" }}>
+        <TopUtilityBar />
+        <MainHeader />
+        <div style={{ padding: "100px", textAlign: "center", fontFamily: "Lexend, sans-serif", fontSize: "18px", color: "#C25050" }}>
+          {error || 'Product not found'}
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
+  const currentPrice = selectedVariant?.salePrice || product.pricing.salePrice;
+  const currentMRP = selectedVariant?.mrp || product.pricing.mrp;
 
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#F5F1EB" }}>
@@ -44,27 +261,48 @@ export default function ProductPage() {
         <div style={{ display: "flex", gap: "32px", justifyContent: "flex-start" }}>
           {/* Left Side - Product Images */}
           <div>
-            {/* Main Product Image Placeholder */}
+            {/* Main Product Image */}
             <div
               style={{
                 width: "679px",
                 height: "820px",
                 backgroundColor: "#D9D9D9",
                 marginBottom: "31px",
+                overflow: "hidden",
               }}
-            />
+            >
+              {selectedImage?.url && (
+                <img
+                  src={selectedImage.url}
+                  alt={selectedImage.altText || product.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              )}
+            </div>
 
             {/* Thumbnail Images */}
             <div style={{ display: "flex", gap: "13px", width: "679px" }}>
-              {[1, 2, 3, 4].map((i) => (
+              {media.slice(0, 4).map((img, i) => (
                 <div
                   key={i}
+                  onClick={() => setSelectedImage(img)}
                   style={{
                     width: "160px",
                     height: "123px",
                     backgroundColor: "#D9D9D9",
+                    cursor: "pointer",
+                    border: selectedImage?.url === img.url ? "2px solid #4A2B1F" : "none",
+                    overflow: "hidden",
                   }}
-                />
+                >
+                  {img.url && (
+                    <img
+                      src={img.url}
+                      alt={img.altText || `${product.name} ${i + 1}`}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -72,48 +310,50 @@ export default function ProductPage() {
           {/* Right Side - Product Details */}
           <div style={{ flex: 1 }}>
             {/* Stock Alert Box */}
-            <div
-              style={{
-                width: "643px",
-                height: "60px",
-                borderRadius: "13px",
-                border: "1px solid #E8D4D4",
-                backgroundColor: "#FDF8F8",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "12px",
-                marginBottom: "24px",
-              }}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle cx="12" cy="12" r="10" stroke="#C9A86C" strokeWidth="2" />
-                <path
-                  d="M12 8V12M12 16H12.01"
-                  stroke="#C9A86C"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span
+            {stockInfo && stockInfo.availableQuantity <= 10 && stockInfo.availableQuantity > 0 && (
+              <div
                 style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "14px",
-                  color: "#C25050",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
+                  width: "643px",
+                  height: "60px",
+                  borderRadius: "13px",
+                  border: "1px solid #E8D4D4",
+                  backgroundColor: "#FDF8F8",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "12px",
+                  marginBottom: "24px",
                 }}
               >
-                ONLY 3 UNITS REMAINING IN THIS BATCH
-              </span>
-            </div>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="12" cy="12" r="10" stroke="#C9A86C" strokeWidth="2" />
+                  <path
+                    d="M12 8V12M12 16H12.01"
+                    stroke="#C9A86C"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span
+                  style={{
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 500,
+                    fontSize: "14px",
+                    color: "#C25050",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  ONLY {stockInfo.availableQuantity} UNITS REMAINING IN THIS BATCH
+                </span>
+              </div>
+            )}
 
             {/* Rating */}
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
@@ -124,7 +364,7 @@ export default function ProductPage() {
                     width="16"
                     height="16"
                     viewBox="0 0 16 16"
-                    fill="#C9A86C"
+                    fill={star <= Math.round(product.ratingSummary.average) ? "#C9A86C" : "#E5E5E5"}
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path d="M8 0L10.3511 4.76393L15.6085 5.52786L11.8042 9.23607L12.7023 14.4721L8 12L3.29772 14.4721L4.19577 9.23607L0.391548 5.52786L5.64886 4.76393L8 0Z" />
@@ -139,7 +379,7 @@ export default function ProductPage() {
                   color: "#4A2B1F",
                 }}
               >
-                4.9 (20 REVIEWS)
+                {product.ratingSummary.average.toFixed(1)} ({product.ratingSummary.count} REVIEWS)
               </span>
             </div>
 
@@ -156,21 +396,47 @@ export default function ProductPage() {
                 marginBottom: "16px",
               }}
             >
-              VERY LOVELY FACE CREAM
+              {product.name}
             </h1>
 
             {/* Price */}
-            <p
-              style={{
-                fontFamily: "Lexend, sans-serif",
-                fontWeight: 600,
-                fontSize: "28px",
-                color: "#4A2B1F",
-                marginBottom: "20px",
-              }}
-            >
-              ₹800
-            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+              <p
+                style={{
+                  fontFamily: "Lexend, sans-serif",
+                  fontWeight: 600,
+                  fontSize: "28px",
+                  color: "#4A2B1F",
+                }}
+              >
+                ₹{currentPrice}
+              </p>
+              {currentMRP > currentPrice && (
+                <>
+                  <p
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "20px",
+                      color: "#999",
+                      textDecoration: "line-through",
+                    }}
+                  >
+                    ₹{currentMRP}
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "16px",
+                      color: "#C25050",
+                    }}
+                  >
+                    {selectedVariant?.discountPercent || product.pricing.discountPercent}% OFF
+                  </p>
+                </>
+              )}
+            </div>
 
             {/* Description */}
             <p
@@ -185,60 +451,49 @@ export default function ProductPage() {
                 maxWidth: "500px",
               }}
             >
-              Some desctiption about the very lovely face cream. labore tempor ullamco deserunt sint aliquip incididunt duis aliquip velit officia exercitation
+              {product.shortDescription}
             </p>
 
-            {/* Select Size */}
-            <div style={{ marginBottom: "24px" }}>
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  letterSpacing: "0.1em",
-                  color: "#4A2B1F",
-                  opacity: 0.6,
-                  textTransform: "uppercase",
-                  marginBottom: "12px",
-                }}
-              >
-                SELECT SIZE
-              </p>
-              <div style={{ display: "flex", gap: "12px" }}>
-                <button
-                  onClick={() => setSelectedSize("100 ML")}
+            {/* Select Variant/Size */}
+            {variants.length > 0 && (
+              <div style={{ marginBottom: "24px" }}>
+                <p
                   style={{
-                    padding: "16px 32px",
-                    backgroundColor: selectedSize === "100 ML" ? "#D5DCCE" : "transparent",
-                    border: "1px solid #D5DCCE",
-                    borderRadius: "4px",
                     fontFamily: "Lexend, sans-serif",
                     fontWeight: 500,
-                    fontSize: "14px",
+                    fontSize: "12px",
+                    letterSpacing: "0.1em",
                     color: "#4A2B1F",
-                    cursor: "pointer",
+                    opacity: 0.6,
+                    textTransform: "uppercase",
+                    marginBottom: "12px",
                   }}
                 >
-                  100 ML
-                </button>
-                <button
-                  onClick={() => setSelectedSize("100 ML + 30 ML")}
-                  style={{
-                    padding: "16px 32px",
-                    backgroundColor: selectedSize === "100 ML + 30 ML" ? "#D5DCCE" : "transparent",
-                    border: "1px solid #D5DCCE",
-                    borderRadius: "4px",
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    color: "#4A2B1F",
-                    cursor: "pointer",
-                  }}
-                >
-                  100 ML + 30 ML
-                </button>
+                  SELECT SIZE
+                </p>
+                <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                  {variants.map((variant) => (
+                    <button
+                      key={variant._id}
+                      onClick={() => handleVariantChange(variant)}
+                      style={{
+                        padding: "16px 32px",
+                        backgroundColor: selectedVariant?._id === variant._id ? "#D5DCCE" : "transparent",
+                        border: "1px solid #D5DCCE",
+                        borderRadius: "4px",
+                        fontFamily: "Lexend, sans-serif",
+                        fontWeight: 500,
+                        fontSize: "14px",
+                        color: "#4A2B1F",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {variant.name}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity and Add to Cart */}
             <div style={{ marginBottom: "16px" }}>
@@ -312,33 +567,35 @@ export default function ProductPage() {
 
                 {/* Add to Cart Button */}
                 <button
+                  disabled={!stockInfo?.isAvailable}
                   style={{
                     flex: 1,
                     height: "56px",
-                    backgroundColor: "#ECCFA0",
+                    backgroundColor: stockInfo?.isAvailable ? "#ECCFA0" : "#CCCCCC",
                     border: "none",
                     borderRadius: "4px",
                     fontFamily: "Lexend, sans-serif",
                     fontWeight: 600,
                     fontSize: "14px",
                     letterSpacing: "0.1em",
-                    color: "#4A2B1F",
+                    color: stockInfo?.isAvailable ? "#4A2B1F" : "#666666",
                     textTransform: "uppercase",
-                    cursor: "pointer",
+                    cursor: stockInfo?.isAvailable ? "pointer" : "not-allowed",
                   }}
                   onClick={handleAddToCart}
                 >
-                  ADD TO CART
+                  {stockInfo?.isAvailable ? 'ADD TO CART' : 'OUT OF STOCK'}
                 </button>
               </div>
             </div>
 
             {/* Buy Now Button */}
             <button
+              disabled={!stockInfo?.isAvailable}
               style={{
                 width: "100%",
                 height: "56px",
-                backgroundColor: "#3D2B27",
+                backgroundColor: stockInfo?.isAvailable ? "#3D2B27" : "#CCCCCC",
                 border: "none",
                 borderRadius: "4px",
                 fontFamily: "Lexend, sans-serif",
@@ -347,7 +604,7 @@ export default function ProductPage() {
                 letterSpacing: "0.1em",
                 color: "#FFFFFF",
                 textTransform: "uppercase",
-                cursor: "pointer",
+                cursor: stockInfo?.isAvailable ? "pointer" : "not-allowed",
                 marginBottom: "24px",
               }}
             >
@@ -422,7 +679,7 @@ export default function ProductPage() {
                   letterSpacing: "0.05em",
                 }}
               >
-                EST. DELIVERY: 13TH - 15TH JANUARY 2025
+                EST. DELIVERY: 13TH - 15TH FEBRUARY 2026
               </p>
             </div>
 
@@ -481,235 +738,248 @@ export default function ProductPage() {
       </div>
 
       {/* Create Your Basket Section */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1512px",
-          margin: "0 auto",
-          paddingLeft: "67px",
-          paddingRight: "67px",
-          paddingTop: "40px",
-          paddingBottom: "80px",
-        }}
-      >
+      {bundles.length > 0 && (
         <div
           style={{
-            width: "1146px",
-            height: "552px",
-            backgroundColor: "#ECCFA0",
-            borderRadius: "24px",
-            padding: "48px",
+            width: "100%",
+            maxWidth: "1512px",
             margin: "0 auto",
+            paddingLeft: "67px",
+            paddingRight: "67px",
+            paddingTop: "40px",
+            paddingBottom: "80px",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            {/* Left Side */}
-            <div style={{ width: "571px" }}>
-              <h2
-                style={{
-                  fontFamily: "Lexend Exa, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "36px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  color: "#4A2B1F",
-                  textTransform: "uppercase",
-                  marginBottom: "24px",
-                }}
-              >
-                CREATE YOUR BASKET
-              </h2>
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "22px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  color: "#4A2B1F",
-                  opacity: 0.6,
-                  width: "534px",
-                  height: "97px",
-                }}
-              >
-                Select items to bundle and save 15% on your entire bundle.
-              </p>
-            </div>
+          <div
+            style={{
+              width: "1146px",
+              height: "552px",
+              backgroundColor: "#ECCFA0",
+              borderRadius: "24px",
+              padding: "48px",
+              margin: "0 auto",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              {/* Left Side */}
+              <div style={{ width: "571px" }}>
+                <h2
+                  style={{
+                    fontFamily: "Lexend Exa, sans-serif",
+                    fontWeight: 400,
+                    fontSize: "36px",
+                    lineHeight: "100%",
+                    letterSpacing: "0",
+                    color: "#4A2B1F",
+                    textTransform: "uppercase",
+                    marginBottom: "24px",
+                  }}
+                >
+                  CREATE YOUR BASKET
+                </h2>
+                <p
+                  style={{
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 400,
+                    fontSize: "22px",
+                    lineHeight: "100%",
+                    letterSpacing: "0",
+                    color: "#4A2B1F",
+                    opacity: 0.6,
+                    width: "534px",
+                    height: "97px",
+                  }}
+                >
+                  Select items to bundle and save 15% on your entire bundle.
+                </p>
+              </div>
 
-            {/* Right Side - Bundle Total */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "12px" }}>
-              <p
-                style={{
-                  fontFamily: "Lexend Exa, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "16px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  color: "#AB522E",
-                  textTransform: "uppercase",
-                }}
-              >
-                BUNDLE TOTAL
-              </p>
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "24px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  color: "#4F2C22",
-                  opacity: 0.6,
-                }}
-              >
-                ₹1020
-              </p>
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "16px",
-                  lineHeight: "100%",
-                  letterSpacing: "0",
-                  color: "#4F2C22",
-                  opacity: 0.6,
-                }}
-              >
-                15% Savings applied
-              </p>
-            </div>
-          </div>
-
-          {/* Bundle Items */}
-          <div style={{ display: "flex", gap: "24px", marginTop: "32px", marginBottom: "32px" }}>
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                style={{
-                  width: "329px",
-                  height: "196px",
-                  backgroundColor: "#3D2B27",
-                  padding: "20px",
-                  position: "relative",
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
-                {/* Left Side - Text Content */}
-                <div>
+              {/* Right Side - Bundle Total */}
+              {bundles[0] && (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "12px" }}>
                   <p
                     style={{
-                      width: "240px",
                       fontFamily: "Lexend Exa, sans-serif",
                       fontWeight: 400,
-                      fontSize: "18px",
+                      fontSize: "16px",
                       lineHeight: "100%",
                       letterSpacing: "0",
-                      color: "#FFFFFF",
+                      color: "#AB522E",
                       textTransform: "uppercase",
-                      marginBottom: "8px",
                     }}
                   >
-                    DEEP REST MAGNESIUM BALM
+                    BUNDLE TOTAL
                   </p>
                   <p
                     style={{
                       fontFamily: "Lexend, sans-serif",
                       fontWeight: 400,
-                      fontSize: "18px",
+                      fontSize: "24px",
                       lineHeight: "100%",
                       letterSpacing: "0",
-                      color: "#FFFFFF",
+                      color: "#4F2C22",
                       opacity: 0.6,
                     }}
                   >
-                    ₹400
+                    ₹{bundles[0].finalPrice}
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      lineHeight: "100%",
+                      letterSpacing: "0",
+                      color: "#4F2C22",
+                      opacity: 0.6,
+                    }}
+                  >
+                    ₹{bundles[0].savings} Savings applied
                   </p>
                 </div>
+              )}
+            </div>
 
-                {/* Right Side - Product Image Placeholder */}
+            {/* Bundle Items */}
+            <div style={{ display: "flex", gap: "24px", marginTop: "32px", marginBottom: "32px" }}>
+              {bundles.slice(0, 3).map((bundle, index) => (
                 <div
+                  key={bundle._id}
                   style={{
-                    width: "152px",
-                    height: "114px",
-                    backgroundColor: "#FFFFFF",
-                    position: "absolute",
-                    bottom: "0",
-                    right: "20px",
-                  }}
-                />
-
-                {/* Checkbox */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "16px",
-                    right: "16px",
-                    width: "24px",
-                    height: "24px",
-                    borderRadius: "50%",
-                    backgroundColor: "#FFFFFF",
+                    width: "329px",
+                    height: "196px",
+                    backgroundColor: "#3D2B27",
+                    padding: "20px",
+                    position: "relative",
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <svg
-                    width="12"
-                    height="10"
-                    viewBox="0 0 12 10"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 5L4.5 8.5L11 1.5"
-                      stroke="#4A2B1F"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
-            ))}
-          </div>
+                  {/* Left Side - Text Content */}
+                  <div>
+                    <p
+                      style={{
+                        width: "240px",
+                        fontFamily: "Lexend Exa, sans-serif",
+                        fontWeight: 400,
+                        fontSize: "18px",
+                        lineHeight: "100%",
+                        letterSpacing: "0",
+                        color: "#FFFFFF",
+                        textTransform: "uppercase",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      {bundle.name}
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: "Lexend, sans-serif",
+                        fontWeight: 400,
+                        fontSize: "18px",
+                        lineHeight: "100%",
+                        letterSpacing: "0",
+                        color: "#FFFFFF",
+                        opacity: 0.6,
+                      }}
+                    >
+                      ₹{bundle.finalPrice}
+                    </p>
+                  </div>
 
-          {/* Add Bundle to Cart Button */}
-          <button
-            style={{
-              width: "100%",
-              height: "56px",
-              backgroundColor: "#3D2B27",
-              border: "none",
-              borderRadius: "4px",
-              fontFamily: "Lexend Exa, sans-serif",
-              fontWeight: 400,
-              fontSize: "18px",
-              lineHeight: "100%",
-              letterSpacing: "0",
-              color: "#FCF6EB",
-              textTransform: "uppercase",
-              textAlign: "center",
-              cursor: "pointer",
-            }}
-          >
-            ADD BUNDLE TO CART
-          </button>
+                  {/* Right Side - Product Image */}
+                  {bundle.image?.url && (
+                    <div
+                      style={{
+                        width: "152px",
+                        height: "114px",
+                        backgroundColor: "#FFFFFF",
+                        position: "absolute",
+                        bottom: "0",
+                        right: "20px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <img
+                        src={bundle.image.url}
+                        alt={bundle.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Checkbox */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "16px",
+                      right: "16px",
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "50%",
+                      backgroundColor: "#FFFFFF",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <svg
+                      width="12"
+                      height="10"
+                      viewBox="0 0 12 10"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 5L4.5 8.5L11 1.5"
+                        stroke="#4A2B1F"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Bundle to Cart Button */}
+            <button
+              style={{
+                width: "100%",
+                height: "56px",
+                backgroundColor: "#3D2B27",
+                border: "none",
+                borderRadius: "4px",
+                fontFamily: "Lexend Exa, sans-serif",
+                fontWeight: 400,
+                fontSize: "18px",
+                lineHeight: "100%",
+                letterSpacing: "0",
+                color: "#FCF6EB",
+                textTransform: "uppercase",
+                textAlign: "center",
+                cursor: "pointer",
+              }}
+            >
+              ADD BUNDLE TO CART
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Product Info Tabs Section */}
       <div
         style={{
           width: "1512px",
-          height: "607px",
+          minHeight: "607px",
           margin: "0 auto",
         }}
       >
         <div
           style={{
             width: "100%",
-            height: "100%",
+            minHeight: "100%",
             backgroundColor: "#D5DCCE",
             padding: "48px 60px",
           }}
@@ -877,9 +1147,9 @@ export default function ProductPage() {
                 Key Ingredients
               </h3>
               <ul style={{ listStyle: "none", padding: 0 }}>
-                {["Aloe Vera Extract", "Shea Butter", "Vitamin E", "Coconut Oil", "Turmeric Extract", "Sandalwood Oil"].map((ingredient) => (
+                {ingredients.map((ing) => (
                   <li
-                    key={ingredient}
+                    key={ing._id}
                     style={{
                       fontFamily: "Lexend, sans-serif",
                       fontWeight: 400,
@@ -890,7 +1160,7 @@ export default function ProductPage() {
                       padding: "8px 0",
                     }}
                   >
-                    {ingredient}
+                    {ing.ingredient.name} ({ing.percentage}%)
                   </li>
                 ))}
               </ul>
@@ -927,158 +1197,33 @@ export default function ProductPage() {
                 }}
               >
                 {/* Row 1 */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div
-                    style={{
-                      width: "92px",
-                      height: "92px",
-                      borderRadius: "50%",
-                      border: "2px solid #B0B0B0",
-                      marginBottom: "12px",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "Lexend Exa, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      lineHeight: "100%",
-                      letterSpacing: "0",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                    }}
-                  >
-                    PLANT BASED
-                  </span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div
-                    style={{
-                      width: "92px",
-                      height: "92px",
-                      borderRadius: "50%",
-                      border: "2px solid #B0B0B0",
-                      marginBottom: "12px",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "Lexend Exa, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      lineHeight: "100%",
-                      letterSpacing: "0",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                    }}
-                  >
-                    NO ARTIFICIAL COLOR
-                  </span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div
-                    style={{
-                      width: "92px",
-                      height: "92px",
-                      borderRadius: "50%",
-                      border: "2px solid #B0B0B0",
-                      marginBottom: "12px",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "Lexend Exa, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      lineHeight: "100%",
-                      letterSpacing: "0",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                    }}
-                  >
-                    PLANT BASED
-                  </span>
-                </div>
-
-                {/* Row 2 */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div
-                    style={{
-                      width: "92px",
-                      height: "92px",
-                      borderRadius: "50%",
-                      border: "2px solid #B0B0B0",
-                      marginBottom: "12px",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "Lexend Exa, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      lineHeight: "100%",
-                      letterSpacing: "0",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                    }}
-                  >
-                    CRUELTY FREE
-                  </span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div
-                    style={{
-                      width: "92px",
-                      height: "92px",
-                      borderRadius: "50%",
-                      border: "2px solid #B0B0B0",
-                      marginBottom: "12px",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "Lexend Exa, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      lineHeight: "100%",
-                      letterSpacing: "0",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                    }}
-                  >
-                    NO SYNTHETIC CHEMICALS
-                  </span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div
-                    style={{
-                      width: "92px",
-                      height: "92px",
-                      borderRadius: "50%",
-                      border: "2px solid #B0B0B0",
-                      marginBottom: "12px",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "Lexend Exa, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      lineHeight: "100%",
-                      letterSpacing: "0",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                    }}
-                  >
-                    100% AYURVEDIC
-                  </span>
-                </div>
+                {["PLANT BASED", "NO ARTIFICIAL COLOR", "CRUELTY FREE", "NO SYNTHETIC CHEMICALS", "100% AYURVEDIC", "ECO-FRIENDLY"].map((value, idx) => (
+                  <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div
+                      style={{
+                        width: "92px",
+                        height: "92px",
+                        borderRadius: "50%",
+                        border: "2px solid #B0B0B0",
+                        marginBottom: "12px",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: "Lexend Exa, sans-serif",
+                        fontWeight: 400,
+                        fontSize: "14px",
+                        lineHeight: "100%",
+                        letterSpacing: "0",
+                        color: "#000000",
+                        textTransform: "uppercase",
+                        textAlign: "center",
+                      }}
+                    >
+                      {value}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -1097,29 +1242,18 @@ export default function ProductPage() {
               >
                 How To Use
               </h3>
-              <ol style={{ paddingLeft: "20px" }}>
-                {[
-                  "Cleanse your face thoroughly and pat dry.",
-                  "Take a small amount of cream on your fingertips.",
-                  "Apply gently on face and neck in upward circular motions.",
-                  "Use twice daily - morning and night for best results.",
-                  "For external use only. Avoid contact with eyes.",
-                ].map((step, index) => (
-                  <li
-                    key={index}
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "16px",
-                      lineHeight: "200%",
-                      color: "#4A2B1F",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    {step}
-                  </li>
-                ))}
-              </ol>
+              <p
+                style={{
+                  fontFamily: "Lexend, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "16px",
+                  lineHeight: "200%",
+                  color: "#4A2B1F",
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {product.howToUse}
+              </p>
             </div>
           )}
 
@@ -1324,45 +1458,49 @@ export default function ProductPage() {
             >
               CLIENT REVIEWS
             </h2>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
-              <span
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "48px",
-                  color: "#000000",
-                }}
-              >
-                4.9
-              </span>
-              <div>
-                <div style={{ display: "flex", gap: "2px", marginBottom: "4px" }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="#000000"
-                      xmlns="http://www.w3.org/2000/svg"
+            {reviewStats && (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+                  <span
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 600,
+                      fontSize: "48px",
+                      color: "#000000",
+                    }}
+                  >
+                    {reviewStats.averageRating.toFixed(1)}
+                  </span>
+                  <div>
+                    <div style={{ display: "flex", gap: "2px", marginBottom: "4px" }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <svg
+                          key={star}
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill={star <= Math.round(reviewStats.averageRating) ? "#000000" : "#E5E5E5"}
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M8 0L10.3511 4.76393L15.6085 5.52786L11.8042 9.23607L12.7023 14.4721L8 12L3.29772 14.4721L4.19577 9.23607L0.391548 5.52786L5.64886 4.76393L8 0Z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <span
+                      style={{
+                        fontFamily: "Lexend, sans-serif",
+                        fontWeight: 400,
+                        fontSize: "12px",
+                        color: "#000000",
+                        textTransform: "uppercase",
+                      }}
                     >
-                      <path d="M8 0L10.3511 4.76393L15.6085 5.52786L11.8042 9.23607L12.7023 14.4721L8 12L3.29772 14.4721L4.19577 9.23607L0.391548 5.52786L5.64886 4.76393L8 0Z" />
-                    </svg>
-                  ))}
+                      BASED ON {reviewStats.totalReviews} REVIEWS
+                    </span>
+                  </div>
                 </div>
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "12px",
-                    color: "#000000",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  BASED ON 20 REVIEWS
-                </span>
-              </div>
-            </div>
+              </>
+            )}
             <button
               onClick={() => setShowReviewModal(true)}
               style={{
@@ -1385,251 +1523,203 @@ export default function ProductPage() {
 
           {/* Right Side - Reviews List */}
           <div style={{ maxWidth: "600px" }}>
-            {/* Review 1 */}
-            <div style={{ borderBottom: "1px solid #E0E0E0", paddingBottom: "32px", marginBottom: "32px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                <div style={{ display: "flex", gap: "2px" }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      width="12"
-                      height="12"
-                      viewBox="0 0 16 16"
-                      fill="#000000"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path d="M8 0L10.3511 4.76393L15.6085 5.52786L11.8042 9.23607L12.7023 14.4721L8 12L3.29772 14.4721L4.19577 9.23607L0.391548 5.52786L5.64886 4.76393L8 0Z" />
-                    </svg>
-                  ))}
+            {reviews.slice(0, 2).map((review, index) => (
+              <div
+                key={review._id}
+                style={{
+                  borderBottom: index < reviews.length - 1 ? "1px solid #E0E0E0" : "none",
+                  paddingBottom: "32px",
+                  marginBottom: index < reviews.length - 1 ? "32px" : "0",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                  <div style={{ display: "flex", gap: "2px" }}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <svg
+                        key={star}
+                        width="12"
+                        height="12"
+                        viewBox="0 0 16 16"
+                        fill={star <= review.rating ? "#000000" : "#E5E5E5"}
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path d="M8 0L10.3511 4.76393L15.6085 5.52786L11.8042 9.23607L12.7023 14.4721L8 12L3.29772 14.4721L4.19577 9.23607L0.391548 5.52786L5.64886 4.76393L8 0Z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      color: "#000000",
+                    }}
+                  >
+                    {new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
+                  </span>
                 </div>
-                <span
+                <h4
                   style={{
                     fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "12px",
-                    color: "#000000",
-                  }}
-                >
-                  NOV 12, 2025
-                </span>
-              </div>
-              <h4
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  letterSpacing: "0.05em",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  marginBottom: "12px",
-                }}
-              >
-                LIFE CHANGING CLARITY
-              </h4>
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "14px",
-                  lineHeight: "160%",
-                  color: "#000000",
-                  marginBottom: "16px",
-                }}
-              >
-                "I've tried many adaptogens, but the purity of Cleanse's is evident. The anxiety reduction was noticeable within the first week. Highly recommend the product.
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "12px",
+                    fontWeight: 600,
+                    fontSize: "16px",
+                    letterSpacing: "0.05em",
                     color: "#000000",
                     textTransform: "uppercase",
+                    marginBottom: "12px",
                   }}
                 >
-                  VERIFIED USER - AKSHAT JAIN
-                </span>
-              </div>
-            </div>
-
-            {/* Review 2 */}
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                <div style={{ display: "flex", gap: "2px" }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      width="12"
-                      height="12"
-                      viewBox="0 0 16 16"
-                      fill="#000000"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path d="M8 0L10.3511 4.76393L15.6085 5.52786L11.8042 9.23607L12.7023 14.4721L8 12L3.29772 14.4721L4.19577 9.23607L0.391548 5.52786L5.64886 4.76393L8 0Z" />
-                    </svg>
-                  ))}
+                  {review.title}
+                </h4>
+                <p
+                  style={{
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 400,
+                    fontSize: "14px",
+                    lineHeight: "160%",
+                    color: "#000000",
+                    marginBottom: "16px",
+                  }}
+                >
+                  {review.content}
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  {review.isVerifiedPurchase && (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span
+                        style={{
+                          fontFamily: "Lexend, sans-serif",
+                          fontWeight: 400,
+                          fontSize: "12px",
+                          color: "#000000",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        VERIFIED USER - {review.user.firstName} {review.user.lastName}
+                      </span>
+                    </>
+                  )}
                 </div>
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "12px",
-                    color: "#000000",
-                  }}
-                >
-                  NOV 12, 2025
-                </span>
               </div>
-              <h4
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  letterSpacing: "0.05em",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  marginBottom: "12px",
-                }}
-              >
-                LIFE CHANGING CLARITY
-              </h4>
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "14px",
-                  lineHeight: "160%",
-                  color: "#000000",
-                  marginBottom: "16px",
-                }}
-              >
-                "I've tried many adaptogens, but the purity of Cleanse's is evident. The anxiety reduction was noticeable within the first week. Highly recommend the product.
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span
-                  style={{
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "12px",
-                    color: "#000000",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  VERIFIED USER - AKSHAT JAIN
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Recommended For You Section */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1512px",
-          margin: "0 auto",
-          paddingLeft: "67px",
-          paddingRight: "67px",
-          paddingTop: "60px",
-          paddingBottom: "100px",
-          backgroundColor: "#F5F1EB",
-        }}
-      >
-        <h2
+      {relatedProducts.length > 0 && (
+        <div
           style={{
-            fontFamily: "Lexend, sans-serif",
-            fontWeight: 400,
-            fontSize: "32px",
-            letterSpacing: "0.1em",
-            color: "#000000",
-            textTransform: "uppercase",
-            textAlign: "center",
-            marginBottom: "48px",
+            width: "100%",
+            maxWidth: "1512px",
+            margin: "0 auto",
+            paddingLeft: "67px",
+            paddingRight: "67px",
+            paddingTop: "60px",
+            paddingBottom: "100px",
+            backgroundColor: "#F5F1EB",
           }}
         >
-          RECOMMENDED FOR YOU
-        </h2>
+          <h2
+            style={{
+              fontFamily: "Lexend, sans-serif",
+              fontWeight: 400,
+              fontSize: "32px",
+              letterSpacing: "0.1em",
+              color: "#000000",
+              textTransform: "uppercase",
+              textAlign: "center",
+              marginBottom: "48px",
+            }}
+          >
+            RECOMMENDED FOR YOU
+          </h2>
 
-        {/* Product Cards Grid */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "24px" }}>
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} style={{ display: "flex", flexDirection: "column" }}>
-              {/* Product Image */}
-              <div
-                style={{
-                  width: "329px",
-                  height: "367px",
-                  backgroundColor: "#D9D9D9",
-                  borderRadius: "13px",
-                  marginBottom: "16px",
-                }}
-              />
-              {/* Product Name */}
-              <h3
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 700,
-                  fontSize: "20px",
-                  color: "#000000",
-                  marginBottom: "4px",
-                }}
-              >
-                Product {item}
-              </h3>
-              {/* Product Description */}
-              <p
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "16px",
-                  color: "#000000",
-                  marginBottom: "12px",
-                }}
-              >
-                Description of the product
-              </p>
-              {/* Price and Quick Add */}
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <span
+          {/* Product Cards Grid */}
+          <div style={{ display: "flex", justifyContent: "center", gap: "24px" }}>
+            {relatedProducts.map((item) => (
+              <div key={item._id} style={{ display: "flex", flexDirection: "column" }}>
+                {/* Product Image */}
+                <div
+                  style={{
+                    width: "329px",
+                    height: "367px",
+                    backgroundColor: "#D9D9D9",
+                    borderRadius: "13px",
+                    marginBottom: "16px",
+                    overflow: "hidden",
+                  }}
+                >
+                  {item.primaryImage?.url && (
+                    <img
+                      src={item.primaryImage.url}
+                      alt={item.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  )}
+                </div>
+                {/* Product Name */}
+                <h3
+                  style={{
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 700,
+                    fontSize: "20px",
+                    color: "#000000",
+                    marginBottom: "4px",
+                  }}
+                >
+                  {item.name}
+                </h3>
+                {/* Product Description */}
+                <p
                   style={{
                     fontFamily: "Inter, sans-serif",
                     fontWeight: 400,
-                    fontSize: "20px",
+                    fontSize: "16px",
                     color: "#000000",
+                    marginBottom: "12px",
                   }}
                 >
-                  ₹400
-                </span>
-                <button
-                  style={{
-                    flex: 1,
-                    height: "40px",
-                    backgroundColor: "#D9D9D9",
-                    border: "none",
-                    borderRadius: "4px",
-                    fontFamily: "Lexend, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    color: "#000000",
-                    cursor: "pointer",
-                  }}
-                  onClick={handleAddToCart}
-                >
-                  Quick Add
-                </button>
+                  {item.shortDescription}
+                </p>
+                {/* Price and Quick Add */}
+                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                  <span
+                    style={{
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "20px",
+                      color: "#000000",
+                    }}
+                  >
+                    ₹{item.pricing?.salePrice || 0}
+                  </span>
+                  <button
+                    style={{
+                      flex: 1,
+                      height: "40px",
+                      backgroundColor: "#D9D9D9",
+                      border: "none",
+                      borderRadius: "4px",
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      color: "#000000",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleAddToCart}
+                  >
+                    Quick Add
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Footer with rounded top */}
       <div
@@ -1645,7 +1735,7 @@ export default function ProductPage() {
         <Footer />
       </div>
 
-      {/* Review Modal */}
+      {/* Review Modal - Same as before */}
       {showReviewModal && (
         <div
           style={{

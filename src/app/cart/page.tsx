@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { TopUtilityBar, MainHeader, Footer } from "@/components/layout";
+import { useCart } from "@/context";
 
 export default function CartPage() {
-  const [quantity, setQuantity] = useState(1);
+  const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
   const [timeLeft, setTimeLeft] = useState({ minutes: 7, seconds: 45 });
   const [selectedShipping, setSelectedShipping] = useState("free");
   const [couponCode, setCouponCode] = useState("");
@@ -29,10 +31,8 @@ export default function CartPage() {
     return `${timeLeft.minutes}:${timeLeft.seconds.toString().padStart(2, "0")}`;
   };
 
-  const price = 400;
-  const subtotal = price * quantity;
   const shippingCost = selectedShipping === "express" ? 400 : 0;
-  const total = subtotal + shippingCost;
+  const total = cartTotal + shippingCost;
 
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
@@ -192,147 +192,204 @@ export default function CartPage() {
               </span>
             </div>
 
-            {/* Cart Item */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1fr 1fr 1fr",
-                alignItems: "center",
-                paddingBottom: "24px",
-                borderBottom: "1px solid #E5E5E5",
-                marginBottom: "40px",
-              }}
-            >
-              {/* Product Info */}
-              <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                <div
+            {/* Cart Items */}
+            {cartItems.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0" }}>
+                <p
                   style={{
-                    width: "100px",
-                    height: "100px",
-                    backgroundColor: "#E5E5E5",
-                    borderRadius: "8px",
-                    flexShrink: 0,
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 400,
+                    fontSize: "18px",
+                    color: "#999999",
+                    marginBottom: "24px",
                   }}
-                />
-                <div>
-                  <h3
+                >
+                  Your cart is empty
+                </p>
+                <Link href="/shop">
+                  <button
+                    style={{
+                      backgroundColor: "#4A2B1F",
+                      color: "#FFFFFF",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "14px 32px",
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      textTransform: "uppercase",
+                      cursor: "pointer",
+                    }}
+                  >
+                    CONTINUE SHOPPING
+                  </button>
+                </Link>
+              </div>
+            ) : (
+              cartItems.map((item) => (
+                <div
+                  key={`${item.productId}-${item.variantId || ''}`}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "2fr 1fr 1fr 1fr",
+                    alignItems: "center",
+                    paddingBottom: "24px",
+                    borderBottom: "1px solid #E5E5E5",
+                    marginBottom: "24px",
+                  }}
+                >
+                  {/* Product Info */}
+                  <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                    <Link href={`/product/${item.slug}`}>
+                      <div
+                        style={{
+                          width: "100px",
+                          height: "100px",
+                          backgroundColor: "#E5E5E5",
+                          borderRadius: "8px",
+                          flexShrink: 0,
+                          overflow: "hidden",
+                        }}
+                      >
+                        {item.image && (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        )}
+                      </div>
+                    </Link>
+                    <div>
+                      <Link href={`/product/${item.slug}`} style={{ textDecoration: "none" }}>
+                        <h3
+                          style={{
+                            fontFamily: "Lexend, sans-serif",
+                            fontWeight: 600,
+                            fontSize: "16px",
+                            color: "#000000",
+                            textTransform: "uppercase",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          {item.name}
+                        </h3>
+                      </Link>
+                      {item.variantName && (
+                        <p
+                          style={{
+                            fontFamily: "Lexend, sans-serif",
+                            fontWeight: 400,
+                            fontSize: "14px",
+                            color: "#666666",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          {item.variantName}
+                        </p>
+                      )}
+                      <button
+                        onClick={() => removeFromCart(item.productId, item.variantId)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          fontFamily: "Lexend, sans-serif",
+                          fontWeight: 400,
+                          fontSize: "12px",
+                          color: "#999999",
+                          cursor: "pointer",
+                          textTransform: "uppercase",
+                          padding: 0,
+                        }}
+                      >
+                        REMOVE
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Quantity */}
+                  <div style={{ display: "flex", justifyContent: "center" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        border: "1px solid #E5E5E5",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      <button
+                        onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1), item.variantId)}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          border: "none",
+                          backgroundColor: "transparent",
+                          cursor: "pointer",
+                          fontFamily: "Lexend, sans-serif",
+                          fontSize: "16px",
+                        }}
+                      >
+                        -
+                      </button>
+                      <span
+                        style={{
+                          width: "32px",
+                          textAlign: "center",
+                          fontFamily: "Lexend, sans-serif",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId)}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          border: "none",
+                          backgroundColor: "transparent",
+                          cursor: "pointer",
+                          fontFamily: "Lexend, sans-serif",
+                          fontSize: "16px",
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <p
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      color: "#000000",
+                      textAlign: "center",
+                    }}
+                  >
+                    ₹{item.price}
+                  </p>
+
+                  {/* Subtotal */}
+                  <p
                     style={{
                       fontFamily: "Lexend, sans-serif",
                       fontWeight: 600,
                       fontSize: "16px",
                       color: "#000000",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
+                      textAlign: "right",
                     }}
                   >
-                    THIS IS THE PRODUCT NAME
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "#666666",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    Product Description
+                    ₹{item.price * item.quantity}
                   </p>
-                  <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "12px",
-                      color: "#999999",
-                      cursor: "pointer",
-                      textTransform: "uppercase",
-                      padding: 0,
-                    }}
-                  >
-                    REMOVE
-                  </button>
                 </div>
-              </div>
-
-              {/* Quantity */}
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    border: "1px solid #E5E5E5",
-                    borderRadius: "4px",
-                  }}
-                >
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      border: "none",
-                      backgroundColor: "transparent",
-                      cursor: "pointer",
-                      fontFamily: "Lexend, sans-serif",
-                      fontSize: "16px",
-                    }}
-                  >
-                    -
-                  </button>
-                  <span
-                    style={{
-                      width: "32px",
-                      textAlign: "center",
-                      fontFamily: "Lexend, sans-serif",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      border: "none",
-                      backgroundColor: "transparent",
-                      cursor: "pointer",
-                      fontFamily: "Lexend, sans-serif",
-                      fontSize: "16px",
-                    }}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Price */}
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "16px",
-                  color: "#000000",
-                  textAlign: "center",
-                }}
-              >
-                ₹{price}
-              </p>
-
-              {/* Subtotal */}
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  color: "#000000",
-                  textAlign: "right",
-                }}
-              >
-                ₹{subtotal}
-              </p>
-            </div>
+              ))
+            )}
 
             {/* Coupon Section */}
             <div style={{ marginBottom: "24px" }}>
@@ -663,7 +720,7 @@ export default function CartPage() {
                     color: "#000000",
                   }}
                 >
-                  ₹{subtotal}
+                  ₹{cartTotal.toFixed(0)}
                 </span>
               </div>
 

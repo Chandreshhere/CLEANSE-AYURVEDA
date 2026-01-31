@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { getReels } from "@/lib/api/cms";
 
 const InstagramIcon: React.FC = () => (
   <svg
@@ -53,21 +56,38 @@ const ImageBox: React.FC<ImageBoxProps> = ({ image, alt }) => (
 );
 
 export const InstagramSection: React.FC = () => {
-  const images = [
-    { src: "/c1.png", alt: "Instagram post 1" },
-    { src: "/c2.png", alt: "Instagram post 2" },
-    { src: "/c3.png", alt: "Instagram post 3" },
-    { src: "/c4.png", alt: "Instagram post 4" },
-    { src: "/c5.png", alt: "Instagram post 5" },
-  ];
+  const [reels, setReels] = useState<Array<{ src: string; alt: string; videoUrl: string }>>([]);
 
+  useEffect(() => {
+    const fetchReels = async () => {
+      try {
+        const response = await getReels(5);
+
+        if (response.data && response.data.length > 0) {
+          const reelsData = response.data.map((reel) => ({
+            src: reel.thumbnail_url,
+            alt: reel.title,
+            videoUrl: reel.video_url,
+          }));
+
+          setReels(reelsData);
+        }
+      } catch (err) {
+        console.error('Error fetching reels:', err);
+      }
+    };
+
+    fetchReels();
+  }, []);
+
+  // Always render section to avoid hydration mismatch
   return (
     <section
       className="bg-off-white"
       style={{
         width: "100%",
-        paddingTop: "120px",
-        paddingBottom: "200px",
+        paddingTop: "0px",
+        paddingBottom: "0px",
       }}
     >
       {/* Green Background Container */}
@@ -148,9 +168,27 @@ export const InstagramSection: React.FC = () => {
             gap: "24px",
           }}
         >
-          {images.map((img, index) => (
-            <ImageBox key={index} image={img.src} alt={img.alt} />
-          ))}
+          {reels.length > 0 ? (
+            reels.map((reel, index) => (
+              <ImageBox key={index} image={reel.src} alt={reel.alt} />
+            ))
+          ) : (
+            // Loading skeleton
+            <>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse"
+                  style={{
+                    width: "208px",
+                    height: "208px",
+                    backgroundColor: "#B8C5B4",
+                    borderRadius: "8px",
+                  }}
+                />
+              ))}
+            </>
+          )}
         </div>
       </div>
       </div>

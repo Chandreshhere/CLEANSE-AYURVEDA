@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TopUtilityBar, MainHeader, Footer } from "@/components/layout";
 import { useAuth } from "@/context";
@@ -1076,15 +1076,18 @@ const PlaceholderContent: React.FC<{ title: string }> = ({ title }) => (
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, isLoading, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, isLoading, router]);
+  // Default user for when authentication is bypassed
+  const displayUser = user || { id: "guest", name: "Guest", email: "guest@example.com" };
+
+  // Redirect to login if not authenticated - COMMENTED OUT
+  // useEffect(() => {
+  //   if (!isLoading && !user) {
+  //     router.push("/login");
+  //   }
+  // }, [user, isLoading, router]);
 
   const handleLogout = () => {
     logout();
@@ -1100,40 +1103,40 @@ export default function AccountPage() {
     { id: "payment", label: "PAYMENT METHODS" },
   ];
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
-        <TopUtilityBar />
-        <MainHeader />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Lexend, sans-serif",
-              fontWeight: 400,
-              fontSize: "16px",
-              color: "#666666",
-            }}
-          >
-            Loading...
-          </p>
-        </div>
-        <Footer />
-      </main>
-    );
-  }
+  // Show loading state - COMMENTED OUT
+  // if (isLoading) {
+  //   return (
+  //     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+  //       <TopUtilityBar />
+  //       <MainHeader />
+  //       <div
+  //         style={{
+  //           flex: 1,
+  //           display: "flex",
+  //           alignItems: "center",
+  //           justifyContent: "center",
+  //         }}
+  //       >
+  //         <p
+  //           style={{
+  //             fontFamily: "Lexend, sans-serif",
+  //             fontWeight: 400,
+  //             fontSize: "16px",
+  //             color: "#666666",
+  //           }}
+  //         >
+  //           Loading...
+  //         </p>
+  //       </div>
+  //       <Footer />
+  //     </main>
+  //   );
+  // }
 
-  // Don't render if not authenticated (will redirect)
-  if (!user) {
-    return null;
-  }
+  // Don't render if not authenticated (will redirect) - COMMENTED OUT
+  // if (!user) {
+  //   return null;
+  // }
 
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
@@ -1189,7 +1192,7 @@ export default function AccountPage() {
                     textTransform: "uppercase",
                   }}
                 >
-                  {user.name.charAt(0)}
+                  {displayUser.name.charAt(0)}
                 </span>
               </div>
               <div>
@@ -1203,7 +1206,7 @@ export default function AccountPage() {
                     marginBottom: "4px",
                   }}
                 >
-                  {user.name}
+                  {displayUser.name}
                 </h3>
                 <p
                   style={{
@@ -1266,7 +1269,7 @@ export default function AccountPage() {
 
           {/* Right Content */}
           <div style={{ flex: 1 }}>
-            {activeTab === "dashboard" && <DashboardContent userName={user.name} />}
+            {activeTab === "dashboard" && <DashboardContent userName={displayUser.name} />}
             {activeTab === "orders" && <OrderHistoryContent />}
             {activeTab === "wishlist" && <WishlistContent />}
             {activeTab === "rewards" && <RewardsContent />}

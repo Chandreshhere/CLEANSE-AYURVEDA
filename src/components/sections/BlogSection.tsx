@@ -1,10 +1,15 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { getBlogs } from "@/lib/api/cms";
 
 interface BlogCardProps {
   image: string;
   category: string;
   title: string;
   description: string;
+  slug: string;
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({
@@ -12,6 +17,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
   category,
   title,
   description,
+  slug,
 }) => (
   <div>
     {/* Image Container */}
@@ -103,8 +109,8 @@ const BlogCard: React.FC<BlogCardProps> = ({
       </p>
 
       {/* Read More Link */}
-      <a
-        href="#"
+      <Link
+        href={`/blogs/${slug}`}
         className="text-black"
         style={{
           display: "inline-flex",
@@ -136,31 +142,41 @@ const BlogCard: React.FC<BlogCardProps> = ({
             strokeLinejoin="round"
           />
         </svg>
-      </a>
+      </Link>
     </div>
   </div>
 );
 
 export const BlogSection: React.FC = () => {
-  const blogs = [
-    {
-      image: "/jar.png",
-      category: "Rituals",
-      title: "THE ART OF EVENING WIND DOWN",
-      description:
-        "Explore the ancient Ayurvedic Techniques to prepare your body for deep restorative sleep.",
-    },
-    {
-      image: "/shot.png",
-      category: "Rituals",
-      title: "THE ART OF EVENING WIND DOWN",
-      description:
-        "Explore the ancient Ayurvedic Techniques to prepare your body for deep restorative sleep.",
-    },
-  ];
+  const [blogs, setBlogs] = useState<Array<{ image: string; category: string; title: string; description: string; slug: string }>>([]);
 
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await getBlogs(1, 2);
+
+        if (response.data?.blogs && response.data.blogs.length > 0) {
+          const blogData = response.data.blogs.map((blog) => ({
+            image: blog.featured_image_url,
+            category: blog.category_id.name,
+            title: blog.title,
+            description: blog.excerpt,
+            slug: blog.slug,
+          }));
+
+          setBlogs(blogData);
+        }
+      } catch (err) {
+        console.error('Error fetching blogs:', err);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
+
+  // Always render section to avoid hydration mismatch
   return (
-    <section className="w-full bg-off-white">
+    <section className="w-full" style={{ backgroundColor: "#FCF6EB" }}>
       <div className="mx-auto max-w-[1920px] px-4 py-16 min-[480px]:px-6 sm:px-10 md:px-12 lg:px-20 lg:py-24 xl:px-32">
         {/* Section Header */}
         <div className="mb-12 text-center">
@@ -203,21 +219,57 @@ export const BlogSection: React.FC = () => {
 
         {/* Blog Cards */}
         <div className="flex justify-center gap-6">
-          {blogs.map((blog, index) => (
-            <BlogCard
-              key={index}
-              image={blog.image}
-              category={blog.category}
-              title={blog.title}
-              description={blog.description}
-            />
-          ))}
+          {blogs.length > 0 ? (
+            blogs.map((blog, index) => (
+              <BlogCard
+                key={index}
+                image={blog.image}
+                category={blog.category}
+                title={blog.title}
+                description={blog.description}
+                slug={blog.slug}
+              />
+            ))
+          ) : (
+            // Loading skeleton
+            <>
+              {[1, 2].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div
+                    style={{
+                      width: "679px",
+                      height: "469px",
+                      backgroundColor: "#E5E5E5",
+                      borderRadius: "12px",
+                    }}
+                  />
+                  <div style={{ marginTop: "16px" }}>
+                    <div
+                      style={{
+                        width: "96px",
+                        height: "27px",
+                        backgroundColor: "#E5E5E5",
+                      }}
+                    />
+                    <div
+                      style={{
+                        width: "666px",
+                        height: "71px",
+                        backgroundColor: "#E5E5E5",
+                        marginTop: "12px",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         {/* View All Blogs Link */}
         <div className="mt-16 text-center">
-          <a
-            href="#"
+          <Link
+            href="/blogs"
             className="text-black"
             style={{
               display: "inline-block",
@@ -232,7 +284,7 @@ export const BlogSection: React.FC = () => {
             }}
           >
             VIEW ALL BLOGS
-          </a>
+          </Link>
         </div>
       </div>
     </section>

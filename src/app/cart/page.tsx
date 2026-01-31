@@ -4,12 +4,19 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { TopUtilityBar, MainHeader, Footer } from "@/components/layout";
 import { useCart } from "@/context";
+import {
+  getRelatedProductsBySlug,
+  type RelatedProduct,
+  type RelatedProductsData,
+} from "@/lib/api";
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount, addToCart } = useCart();
   const [timeLeft, setTimeLeft] = useState({ minutes: 7, seconds: 45 });
   const [selectedShipping, setSelectedShipping] = useState("free");
   const [couponCode, setCouponCode] = useState("");
+  const [recommendedProducts, setRecommendedProducts] = useState<RelatedProduct[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   // Countdown timer
   useEffect(() => {
@@ -27,12 +34,77 @@ export default function CartPage() {
     return () => clearInterval(timer);
   }, []);
 
+  // Fetch recommended products based on cart items
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      if (cartItems.length === 0) {
+        setRecommendedProducts([]);
+        return;
+      }
+
+      setLoadingRecommendations(true);
+      try {
+        // Get related products for ALL items in cart
+        const allRecommendationsPromises = cartItems.map(item =>
+          getRelatedProductsBySlug(item.slug, undefined, 5)
+        );
+
+        const responses = await Promise.all(allRecommendationsPromises);
+
+        // Combine all recommendations from all cart items
+        const allRecommendations: RelatedProduct[] = [];
+        responses.forEach(response => {
+          if (response.data?.related) {
+            allRecommendations.push(
+              ...(response.data.related.crossSell || []),
+              ...(response.data.related.upSell || []),
+              ...(response.data.related.frequentlyBoughtTogether || [])
+            );
+          }
+        });
+
+        // Remove duplicates based on product ID
+        const uniqueRecommendations = allRecommendations.filter(
+          (product, index, self) =>
+            index === self.findIndex(p => p._id === product._id)
+        );
+
+        // Filter out products already in cart
+        const cartProductIds = cartItems.map(item => item.productId);
+        const filteredRecommendations = uniqueRecommendations.filter(
+          product => !cartProductIds.includes(product._id)
+        );
+
+        // Limit to 3 products
+        setRecommendedProducts(filteredRecommendations.slice(0, 3));
+      } catch (error) {
+        console.error('[Cart] Error fetching recommendations:', error);
+        setRecommendedProducts([]);
+      } finally {
+        setLoadingRecommendations(false);
+      }
+    };
+
+    fetchRecommendations();
+  }, [cartItems]);
+
   const formatTime = () => {
     return `${timeLeft.minutes}:${timeLeft.seconds.toString().padStart(2, "0")}`;
   };
 
   const shippingCost = selectedShipping === "express" ? 400 : 0;
   const total = cartTotal + shippingCost;
+
+  const handleAddRecommendedProduct = (product: RelatedProduct) => {
+    addToCart({
+      productId: product._id,
+      slug: product.slug,
+      name: product.name,
+      image: product.primaryImage?.url,
+      price: product.pricing.salePrice,
+      mrp: product.pricing.mrp,
+    });
+  };
 
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
@@ -322,7 +394,7 @@ export default function CartPage() {
                       }}
                     >
                       <button
-                        onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1), item.variantId)}
+                        onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId)}
                         style={{
                           width: "32px",
                           height: "32px",
@@ -776,175 +848,192 @@ export default function CartPage() {
             </div>
 
             {/* Complete The Collection */}
-            <div
-              style={{
-                border: "1px solid #E5E5E5",
-                borderRadius: "8px",
-                padding: "24px",
-              }}
-            >
-              <h3
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  color: "#000000",
-                  textTransform: "uppercase",
-                  marginBottom: "20px",
-                }}
-              >
-                COMPLETE THE COLLECTION
-              </h3>
-
-              {/* Suggestion Item 1 */}
+            {cartItems.length > 0 && (
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "12px",
                   border: "1px solid #E5E5E5",
                   borderRadius: "8px",
-                  marginBottom: "12px",
+                  padding: "24px",
                 }}
               >
-                <div
+                <h3
                   style={{
-                    width: "60px",
-                    height: "60px",
-                    backgroundColor: "#E5E5E5",
-                    borderRadius: "4px",
-                    flexShrink: 0,
-                  }}
-                />
-                <div style={{ flex: 1 }}>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    PRODUCT NAME
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "#666666",
-                    }}
-                  >
-                    ₹220
-                  </p>
-                </div>
-                <button
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    border: "1px solid #E5E5E5",
-                    borderRadius: "4px",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 600,
+                    fontSize: "16px",
+                    color: "#000000",
+                    textTransform: "uppercase",
+                    marginBottom: "20px",
                   }}
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M8 3V13M3 8H13"
-                      stroke="#000000"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-              </div>
+                  COMPLETE THE COLLECTION
+                </h3>
 
-              {/* Suggestion Item 2 */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "12px",
-                  border: "1px solid #E5E5E5",
-                  borderRadius: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "60px",
-                    height: "60px",
-                    backgroundColor: "#E5E5E5",
-                    borderRadius: "4px",
-                    flexShrink: 0,
-                  }}
-                />
-                <div style={{ flex: 1 }}>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      color: "#000000",
-                      textTransform: "uppercase",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    PRODUCT NAME
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "Lexend, sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "#666666",
-                    }}
-                  >
-                    ₹220
-                  </p>
-                </div>
-                <button
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    border: "1px solid #E5E5E5",
-                    borderRadius: "4px",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M8 3V13M3 8H13"
-                      stroke="#000000"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
+                {loadingRecommendations ? (
+                  <div style={{ textAlign: "center", padding: "20px 0" }}>
+                    <p
+                      style={{
+                        fontFamily: "Lexend, sans-serif",
+                        fontSize: "14px",
+                        color: "#999999",
+                      }}
+                    >
+                      Loading recommendations...
+                    </p>
+                  </div>
+                ) : recommendedProducts.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "20px 0" }}>
+                    <p
+                      style={{
+                        fontFamily: "Lexend, sans-serif",
+                        fontSize: "14px",
+                        color: "#999999",
+                      }}
+                    >
+                      No recommendations available
+                    </p>
+                  </div>
+                ) : (
+                  recommendedProducts.map((product, index) => (
+                    <div
+                      key={product._id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "12px",
+                        border: "1px solid #E5E5E5",
+                        borderRadius: "8px",
+                        marginBottom: index < recommendedProducts.length - 1 ? "12px" : "0",
+                      }}
+                    >
+                      <Link href={`/product/${product.slug}`}>
+                        <div
+                          style={{
+                            width: "60px",
+                            height: "60px",
+                            backgroundColor: "#E5E5E5",
+                            borderRadius: "4px",
+                            flexShrink: 0,
+                            overflow: "hidden",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {product.primaryImage?.url && (
+                            <img
+                              src={product.primaryImage.url}
+                              alt={product.primaryImage.alt || product.name}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          )}
+                        </div>
+                      </Link>
+                      <div style={{ flex: 1 }}>
+                        <Link href={`/product/${product.slug}`} style={{ textDecoration: "none" }}>
+                          <p
+                            style={{
+                              fontFamily: "Lexend, sans-serif",
+                              fontWeight: 600,
+                              fontSize: "13px",
+                              color: "#000000",
+                              textTransform: "uppercase",
+                              marginBottom: "4px",
+                              cursor: "pointer",
+                              lineHeight: "1.2",
+                            }}
+                          >
+                            {product.name}
+                          </p>
+                        </Link>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <p
+                            style={{
+                              fontFamily: "Lexend, sans-serif",
+                              fontWeight: 600,
+                              fontSize: "14px",
+                              color: "#000000",
+                            }}
+                          >
+                            ₹{product.pricing.salePrice}
+                          </p>
+                          {product.pricing.mrp > product.pricing.salePrice && (
+                            <>
+                              <p
+                                style={{
+                                  fontFamily: "Lexend, sans-serif",
+                                  fontWeight: 400,
+                                  fontSize: "12px",
+                                  color: "#999999",
+                                  textDecoration: "line-through",
+                                }}
+                              >
+                                ₹{product.pricing.mrp}
+                              </p>
+                              {product.pricing.discountPercent && (
+                                <p
+                                  style={{
+                                    fontFamily: "Lexend, sans-serif",
+                                    fontWeight: 500,
+                                    fontSize: "11px",
+                                    color: "#10B981",
+                                  }}
+                                >
+                                  {product.pricing.discountPercent}% OFF
+                                </p>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleAddRecommendedProduct(product)}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          border: "1px solid #E5E5E5",
+                          borderRadius: "4px",
+                          backgroundColor: "transparent",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = "#000000";
+                          const svg = e.currentTarget.querySelector("svg path");
+                          if (svg) (svg as SVGPathElement).setAttribute("stroke", "#FFFFFF");
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          const svg = e.currentTarget.querySelector("svg path");
+                          if (svg) (svg as SVGPathElement).setAttribute("stroke", "#000000");
+                        }}
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M8 3V13M3 8H13"
+                            stroke="#000000"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

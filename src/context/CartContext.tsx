@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import Cookies from "js-cookie";
 
 export interface CartItem {
   productId: string;
@@ -29,28 +30,52 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// Cookie configuration for cart persistence
+const CART_COOKIE_OPTIONS = {
+  expires: 30,        // 30 days expiration
+  path: '/',          // Available site-wide
+  sameSite: 'Lax' as const,    // CSRF protection
+  secure: process.env.NODE_ENV === 'production', // HTTPS in production
+};
+
+const CART_COOKIE_NAME = 'cleanse_cart';
+
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Load cart from localStorage on mount
+  // Load cart from cookies on mount (with migration from localStorage)
   useEffect(() => {
     setIsMounted(true);
-    const savedCart = localStorage.getItem('cart');
+
+    // Try to load from cookies first
+    let savedCart = Cookies.get(CART_COOKIE_NAME);
+
+    // If no cookie exists, check localStorage for migration
+    if (!savedCart) {
+      const localStorageCart = localStorage.getItem('cart');
+      if (localStorageCart) {
+        savedCart = localStorageCart;
+        // Migrate to cookies and clean up localStorage
+        Cookies.set(CART_COOKIE_NAME, localStorageCart, CART_COOKIE_OPTIONS);
+        localStorage.removeItem('cart');
+      }
+    }
+
     if (savedCart) {
       try {
         setCartItems(JSON.parse(savedCart));
       } catch (error) {
-        console.error('[CartContext] Error loading cart from localStorage:', error);
+        console.error('[CartContext] Error loading cart from cookies:', error);
       }
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes (only after mount)
+  // Save cart to cookies whenever it changes (only after mount)
   useEffect(() => {
     if (isMounted) {
-      localStorage.setItem('cart', JSON.stringify(cartItems));
+      Cookies.set(CART_COOKIE_NAME, JSON.stringify(cartItems), CART_COOKIE_OPTIONS);
     }
   }, [cartItems, isMounted]);
 
@@ -103,6 +128,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const clearCart = () => {
     setCartItems([]);
+    Cookies.remove(CART_COOKIE_NAME, { path: '/' });
   };
 
   // Calculate cart total

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { TopUtilityBar, MainHeader, Footer } from "@/components/layout";
 import { useCart } from "@/context";
 import { Skeleton, ProductCardSkeleton } from "@/components/ui";
@@ -14,6 +14,7 @@ import {
   getProductReviews,
   getProductIngredients,
   checkStockAvailability,
+  validatePincode,
   type ProductDetail,
   type ProductVariant,
   type ProductImage,
@@ -21,11 +22,14 @@ import {
   type Review,
   type Ingredient,
   type Product,
+  type PincodeData,
 } from "@/lib/api";
 
 export default function ProductPage() {
   const params = useParams();
   const productId = params?.id as string;
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Product data state
   const [product, setProduct] = useState<ProductDetail | null>(null);
@@ -44,6 +48,9 @@ export default function ProductPage() {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState("");
+  const [pincodeValidation, setPincodeValidation] = useState<PincodeData | null>(null);
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [pincodeError, setPincodeError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("our-values");
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
@@ -76,11 +83,26 @@ export default function ProductPage() {
 
         // Set default variant
         const defaultVariant = variantsResponse.data.variants.find(v => v.isDefault) || variantsResponse.data.variants[0];
-        setSelectedVariant(defaultVariant);
 
-        // Check stock for default variant
-        if (defaultVariant) {
-          const stockResponse = await checkStockAvailability(defaultVariant._id);
+        // Check if variant is specified in URL
+        const variantParam = searchParams.get('variant');
+        let initialVariant = defaultVariant;
+
+        if (variantParam) {
+          // Find variant by ID or name
+          const urlVariant = variantsResponse.data.variants.find(
+            v => v._id === variantParam || v.name === variantParam
+          );
+          if (urlVariant) {
+            initialVariant = urlVariant;
+          }
+        }
+
+        setSelectedVariant(initialVariant);
+
+        // Check stock for selected variant
+        if (initialVariant) {
+          const stockResponse = await checkStockAvailability(initialVariant._id);
           setStockInfo(stockResponse.data);
         }
 
@@ -176,6 +198,40 @@ export default function ProductPage() {
 
   const handleVariantChange = (variant: ProductVariant) => {
     setSelectedVariant(variant);
+
+    // Update URL with selected variant using window.history
+    const newUrl = `/product/${productId}?variant=${variant._id}`;
+    window.history.pushState(null, '', newUrl);
+  };
+
+  const handlePincodeCheck = async () => {
+    // Validate pincode format (6 digits)
+    if (!pincode || pincode.length !== 6 || !/^\d{6}$/.test(pincode)) {
+      setPincodeError('Please enter a valid 6-digit pincode');
+      setPincodeValidation(null);
+      return;
+    }
+
+    setPincodeLoading(true);
+    setPincodeError(null);
+    setPincodeValidation(null);
+
+    try {
+      const response = await validatePincode(pincode);
+
+      if (response.data.isValid) {
+        setPincodeValidation(response.data);
+        setPincodeError(null);
+      } else {
+        setPincodeError(response.error || 'Delivery not available for this pincode');
+        setPincodeValidation(null);
+      }
+    } catch (error) {
+      setPincodeError('Error validating pincode. Please try again.');
+      setPincodeValidation(null);
+    } finally {
+      setPincodeLoading(false);
+    }
   };
 
   if (loading) {
@@ -639,7 +695,16 @@ export default function ProductPage() {
                     type="text"
                     placeholder="Enter Pincode"
                     value={pincode}
-                    onChange={(e) => setPincode(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setPincode(value);
+                      // Clear validation when user types
+                      if (pincodeValidation || pincodeError) {
+                        setPincodeValidation(null);
+                        setPincodeError(null);
+                      }
+                    }}
+                    maxLength={6}
                     style={{
                       width: "100%",
                       padding: "12px 0",
@@ -653,9 +718,11 @@ export default function ProductPage() {
                   />
                 </div>
                 <button
+                  onClick={handlePincodeCheck}
+                  disabled={pincodeLoading || pincode.length !== 6}
                   style={{
                     padding: "16px 40px",
-                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    backgroundColor: pincodeLoading || pincode.length !== 6 ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.2)",
                     border: "1px solid rgba(255, 255, 255, 0.3)",
                     fontFamily: "Lexend, sans-serif",
                     fontWeight: 500,
@@ -663,24 +730,74 @@ export default function ProductPage() {
                     letterSpacing: "0.05em",
                     color: "rgba(255, 255, 255, 0.7)",
                     textTransform: "uppercase",
-                    cursor: "pointer",
+                    cursor: pincodeLoading || pincode.length !== 6 ? "not-allowed" : "pointer",
                   }}
                 >
-                  CHECK
+                  {pincodeLoading ? 'CHECKING...' : 'CHECK'}
                 </button>
               </div>
-              <p
-                style={{
-                  fontFamily: "Lexend, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "12px",
-                  color: "#C9A86C",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                EST. DELIVERY: 13TH - 15TH FEBRUARY 2026
-              </p>
+
+              {/* Validation Results */}
+              {pincodeValidation && pincodeValidation.isValid && (
+                <div style={{ marginBottom: "12px" }}>
+                  <p
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      color: "#90EE90",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    ✓ Delivery Available
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "Lexend, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      color: "#C9A86C",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    {pincodeValidation.city && pincodeValidation.state
+                      ? `${pincodeValidation.city}, ${pincodeValidation.state}`
+                      : `PINCODE: ${pincodeValidation.pincode}`}
+                  </p>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {pincodeError && (
+                <p
+                  style={{
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 400,
+                    fontSize: "12px",
+                    color: "#FF6B6B",
+                    marginBottom: "12px",
+                  }}
+                >
+                  ✗ {pincodeError}
+                </p>
+              )}
+
+              {/* Default Delivery Info */}
+              {!pincodeValidation && !pincodeError && (
+                <p
+                  style={{
+                    fontFamily: "Lexend, sans-serif",
+                    fontWeight: 400,
+                    fontSize: "12px",
+                    color: "#C9A86C",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  ENTER PINCODE TO CHECK DELIVERY
+                </p>
+              )}
             </div>
 
             {/* Divider Line */}
@@ -843,103 +960,82 @@ export default function ProductPage() {
             {/* Bundle Items */}
             <div style={{ display: "flex", gap: "24px", marginTop: "32px", marginBottom: "32px" }}>
               {bundles.slice(0, 3).map((bundle, index) => (
-                <div
-                  key={bundle._id}
-                  style={{
-                    width: "329px",
-                    height: "196px",
-                    backgroundColor: "#3D2B27",
-                    padding: "20px",
-                    position: "relative",
-                    display: "flex",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  {/* Left Side - Text Content */}
-                  <div>
-                    <p
-                      style={{
-                        width: "240px",
-                        fontFamily: "Lexend Exa, sans-serif",
-                        fontWeight: 400,
-                        fontSize: "18px",
-                        lineHeight: "100%",
-                        letterSpacing: "0",
-                        color: "#FFFFFF",
-                        textTransform: "uppercase",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {bundle.name}
-                    </p>
-                    <p
-                      style={{
-                        fontFamily: "Lexend, sans-serif",
-                        fontWeight: 400,
-                        fontSize: "18px",
-                        lineHeight: "100%",
-                        letterSpacing: "0",
-                        color: "#FFFFFF",
-                        opacity: 0.6,
-                      }}
-                    >
-                      ₹{bundle.finalPrice}
-                    </p>
-                  </div>
-
-                  {/* Right Side - Product Image */}
-                  {bundle.image?.url && (
-                    <div
-                      style={{
-                        width: "152px",
-                        height: "114px",
-                        backgroundColor: "#FFFFFF",
-                        position: "absolute",
-                        bottom: "0",
-                        right: "20px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <img
-                        src={bundle.image.url}
-                        alt={bundle.name}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Checkbox */}
                   <div
+                    key={bundle._id}
                     style={{
-                      position: "absolute",
-                      top: "16px",
-                      right: "16px",
-                      width: "24px",
-                      height: "24px",
-                      borderRadius: "50%",
-                      backgroundColor: "#FFFFFF",
+                      width: "329px",
+                      height: "196px",
+                      backgroundColor: "#3D2B27",
+                      padding: "20px",
+                      position: "relative",
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      justifyContent: "space-between",
                     }}
                   >
-                    <svg
-                      width="12"
-                      height="10"
-                      viewBox="0 0 12 10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                    {/* Left Side - Text Content */}
+                    <div>
+                      <p
+                        style={{
+                          width: "240px",
+                          fontFamily: "Lexend Exa, sans-serif",
+                          fontWeight: 400,
+                          fontSize: "18px",
+                          lineHeight: "100%",
+                          letterSpacing: "0",
+                          color: "#FFFFFF",
+                          textTransform: "uppercase",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        {bundle.name}
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: "Lexend, sans-serif",
+                          fontWeight: 400,
+                          fontSize: "18px",
+                          lineHeight: "100%",
+                          letterSpacing: "0",
+                          color: "#FFFFFF",
+                          opacity: 0.6,
+                        }}
+                      >
+                        ₹{bundle.finalPrice}
+                      </p>
+                    </div>
+
+                    {/* Checkbox */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "16px",
+                        right: "16px",
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "50%",
+                        backgroundColor: "#FFFFFF",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
-                      <path
-                        d="M1 5L4.5 8.5L11 1.5"
-                        stroke="#4A2B1F"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                      <svg
+                        width="12"
+                        height="10"
+                        viewBox="0 0 12 10"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M1 5L4.5 8.5L11 1.5"
+                          stroke="#4A2B1F"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
                   </div>
-                </div>
               ))}
             </div>
 

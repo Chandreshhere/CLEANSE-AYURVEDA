@@ -12,6 +12,30 @@ const ShopProductCard: React.FC<{ product: APIProduct }> = ({ product }) => {
   const rating = product.ratingSummary?.average || 0;
   const displayPrice = product.pricing?.salePrice || product.pricing?.mrp || 0;
 
+  // Get category name - handle both string and object types
+  const getCategoryName = () => {
+    // Debug: log category data
+    console.log('[ShopProductCard] Product category:', {
+      productName: product.name,
+      category: product.category,
+      categoryType: typeof product.category
+    });
+
+    if (!product.category) return "CLEANSE AYURVEDA";
+
+    // If category is an object with name property
+    if (typeof product.category === 'object' && 'name' in product.category) {
+      return (product.category as any).name.toUpperCase();
+    }
+
+    // If category is a string
+    if (typeof product.category === 'string') {
+      return product.category.toUpperCase();
+    }
+
+    return "CLEANSE AYURVEDA";
+  };
+
   return (
     <Link href={`/product/${product.slug}`} className="block">
       <div
@@ -87,7 +111,7 @@ const ShopProductCard: React.FC<{ product: APIProduct }> = ({ product }) => {
                 margin: 0,
               }}
             >
-              {product.brand?.name || "CLEANSE AYURVEDA"}
+              {getCategoryName()}
             </p>
             {rating > 0 && (
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -294,7 +318,8 @@ function ShopContent() {
           const params = new URLSearchParams({
             page: page.toString(),
             limit: '20',
-            format: 'standard'
+            format: 'standard',
+            populate: 'category'  // Request category data
           });
           const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://192.168.29.105:3000'}/api/catalog/products?${params.toString()}`;
 
@@ -322,7 +347,8 @@ function ShopContent() {
             sortBy: sortBy,
             order: sortOrder,
             includeSubcategories: 'true',
-            format: 'standard'
+            format: 'standard',
+            populate: 'category'  // Request category data
           });
           const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://192.168.29.105:3000'}/api/catalog/categories/${activeCategory}/products?${params.toString()}`;
 

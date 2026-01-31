@@ -318,7 +318,11 @@ export interface Product {
     skinType?: string[];
     concerns?: string[];
   };
-  category?: string;
+  category?: string | {
+    _id: string;
+    name: string;
+    slug: string;
+  };
   stock_quantity?: number;
 }
 
@@ -1795,6 +1799,187 @@ export async function getProductsByCategory(
           totalPages: 0,
           hasNextPage: false,
           hasPrevPage: false,
+        },
+      },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+// Pincode Validation Types
+export interface PincodeData {
+  pincode: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  isValid: boolean;
+}
+
+export interface PincodeValidationResponse {
+  message: string;
+  data: PincodeData;
+  error: null | string;
+}
+
+/**
+ * Validate pincode for delivery
+ * @param pincode - 6-digit Indian pincode
+ */
+export async function validatePincode(pincode: string): Promise<PincodeValidationResponse> {
+  try {
+    const url = `${API_BASE_URL}/api/auth/addresses/validate-pincode`;
+
+    console.log('[API] 🔄 Validating pincode:', { pincode, url });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ pincode }),
+      cache: 'no-store',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('[API] ❌ Pincode validation failed:', {
+        status: response.status,
+        message: data.message,
+        error: data.error,
+      });
+      return {
+        message: data.message || 'Invalid pincode',
+        data: {
+          pincode,
+          isValid: false,
+        },
+        error: data.error || 'Delivery not available for this pincode',
+      };
+    }
+
+    console.log('[API] ✅ Pincode validated successfully:', {
+      pincode: data.data?.pincode,
+      city: data.data?.city,
+      state: data.data?.state,
+      isValid: data.data?.isValid,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error validating pincode:', error);
+    return {
+      message: 'Error validating pincode',
+      data: {
+        pincode,
+        isValid: false,
+      },
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+// Related Products Types
+export interface RelatedProduct {
+  _id: string;
+  name: string;
+  slug: string;
+  shortDescription: string;
+  primaryImage?: {
+    url: string;
+    alt?: string;
+  };
+  pricing: {
+    mrp: number;
+    salePrice: number;
+    discountPercent?: number;
+  };
+  ratingSummary?: {
+    average: number;
+    count: number;
+  };
+}
+
+export interface RelatedProductsData {
+  crossSell: RelatedProduct[];
+  upSell: RelatedProduct[];
+  frequentlyBoughtTogether: RelatedProduct[];
+}
+
+export interface RelatedProductsResponse {
+  message: string;
+  data: {
+    related: RelatedProductsData;
+  };
+  error: null | string;
+}
+
+/**
+ * Get related products for a product
+ * @param slug - Product slug
+ * @param type - Optional filter by type (crossSell|upSell|frequentlyBoughtTogether)
+ * @param limit - Number of products per type (default: 10, max: 20)
+ */
+export async function getRelatedProductsBySlug(
+  slug: string,
+  type?: 'crossSell' | 'upSell' | 'frequentlyBoughtTogether',
+  limit: number = 10
+): Promise<RelatedProductsResponse> {
+  try {
+    const params = new URLSearchParams();
+    if (type) params.append('type', type);
+    params.append('limit', Math.min(limit, 20).toString());
+
+    const url = `${API_BASE_URL}/api/catalog/products/${slug}/related${params.toString() ? `?${params.toString()}` : ''}`;
+
+    console.log('[API] 🔄 Fetching related products:', { slug, type, limit, url });
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('[API] ❌ Failed to fetch related products:', {
+        status: response.status,
+        message: data.message,
+        error: data.error,
+      });
+      return {
+        message: data.message || 'Failed to fetch related products',
+        data: {
+          related: {
+            crossSell: [],
+            upSell: [],
+            frequentlyBoughtTogether: [],
+          },
+        },
+        error: data.error || 'Failed to fetch related products',
+      };
+    }
+
+    console.log('[API] ✅ Related products fetched successfully:', {
+      slug,
+      crossSellCount: data.data?.related?.crossSell?.length || 0,
+      upSellCount: data.data?.related?.upSell?.length || 0,
+      frequentlyBoughtTogetherCount: data.data?.related?.frequentlyBoughtTogether?.length || 0,
+    });
+
+    return data;
+  } catch (error) {
+    console.error('[API] ❌ Error fetching related products:', error);
+    return {
+      message: 'Error fetching related products',
+      data: {
+        related: {
+          crossSell: [],
+          upSell: [],
+          frequentlyBoughtTogether: [],
         },
       },
       error: error instanceof Error ? error.message : 'Unknown error',
